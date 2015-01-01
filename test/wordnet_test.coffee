@@ -24,6 +24,11 @@ describe 'wordnet', () ->
       done()
 
   it 'should load exclusions correctly', (done) ->
-    wordnet.loadExclusions () ->
+    wordnet.loadExclusions (err) ->
+
+      ## Since the default WNdb doesn't include exclusions, expect an error
+      should.exist(err)
+      err.should.have.property('code', 'ENOENT')
+      
       done()
 
