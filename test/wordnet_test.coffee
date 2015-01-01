@@ -22,3 +22,8 @@ describe 'wordnet', () ->
       should.exist(results)
       results.should.have.property('gloss', 'a machine for making textiles  ')
       done()
+
+  it 'should load exclusions correctly', (done) ->
+    wordnet.loadExclusions () ->
+      done()
+

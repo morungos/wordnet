@@ -21,6 +21,10 @@
 IndexFile = require('./index_file')
 DataFile = require('./data_file')
 
+async = require('async')
+path = require('path')
+fs = require('fs')
+
 
 pushResults = (data, results, offsets, callback) ->
   wordnet = @
@@ -127,6 +131,31 @@ close = () ->
   @advData.close()
 
 
+exclusions = [
+  {name: "noun.exc", pos: 'n'},
+  {name: "verb.exc", pos: 'v'},
+  {name: "adj.exc", pos: 'a'},
+  {name: "adv.exc", pos: 'r'},
+]
+
+loadExclusions = (callback) ->
+  wordnet = this
+  wordnet.exceptions = {n: {}, v: {}, a: {}, r: {}}
+
+  loadFile = (exclusion, callback) ->
+    fullPath = path.join wordnet.path, exclusion.name
+    fs.readFile fullPath, (err, data) ->
+      return callback(err) if err
+      lines = data.toString().split("\n")
+      for line in lines
+        [term1, term2] = line.split(' ')
+        wordnet.exceptions[exclusion.pos][term1] ?= []
+        wordnet.exceptions[exclusion.pos][term1].push term2
+      callback()
+
+  async.each exclusions, loadFile, callback
+
+
 WordNet = (dataDir) ->
 
   if !dataDir
@@ -148,6 +177,7 @@ WordNet = (dataDir) ->
   @advData = new DataFile(dataDir, 'adv')
 
   @get = get
+  @path = dataDir
   @lookup = lookup
   @lookupFromFiles = lookupFromFiles
   @pushResults = pushResults
@@ -156,6 +186,7 @@ WordNet = (dataDir) ->
   @lookupSynonyms = lookupSynonyms
   @getSynonyms = getSynonyms
   @getDataFile = getDataFile
+  @loadExclusions = loadExclusions
 
   @
 
