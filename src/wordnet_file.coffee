@@ -38,22 +38,34 @@ appendLineChar = (fd, pos, buffPos, buff, callback) ->
       else
         appendLineChar(fd, pos + 1, buffPos + 1, buff, callback)
 
-open = (callback) ->
-  filePath = this.filePath
 
-  fs.open filePath, 'r', null, (err, fd) ->
+close = () ->
+  fs.close(@fd)
+  delete @fd
+
+
+open = (callback) ->
+  if @fd
+    return callback null, @fd
+
+  filePath = @filePath
+
+  fs.open filePath, 'r', null, (err, fd) =>
     if err
       console.log('Unable to open %s', filePath)
       return
-    callback err, fd, () ->
-      fs.close(fd)
+    @fd = fd
+    callback err, fd, () -> undefined
+
 
 WordNetFile = (dataDir, fileName) ->
   @dataDir = dataDir
   @fileName = fileName
   @filePath = require('path').join(@dataDir, @fileName)
 
+
 WordNetFile.prototype.open = open
 WordNetFile.appendLineChar = appendLineChar
+
 
 module.exports = WordNetFile

@@ -25,9 +25,8 @@ util = require('util')
 get = (location, callback) ->
   buff = new Buffer(4096)
 
-  @open (err, fd, done) ->
+  @open (err, fd) ->
     WordNetFile.appendLineChar fd, location, 0, buff, (line) ->
-      done()
       data = line.split('| ')
       tokens = data[0].split(/\s+/)
       ptrs = []

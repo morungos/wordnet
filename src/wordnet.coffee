@@ -21,6 +21,7 @@
 IndexFile = require('./index_file')
 DataFile = require('./data_file')
 
+
 pushResults = (data, results, offsets, callback) ->
   wordnet = @
 
@@ -30,6 +31,7 @@ pushResults = (data, results, offsets, callback) ->
     data.get offsets.pop(), (record) ->
       results.push(record)
       wordnet.pushResults(data, results, offsets, callback)
+
 
 lookupFromFiles = (files, results, word, callback) ->
   wordnet = this;
@@ -42,9 +44,10 @@ lookupFromFiles = (files, results, word, callback) ->
     file.index.lookup word, (record) ->
       if record
         wordnet.pushResults file.data, results, record.synsetOffset, () ->
-          wordnet.lookupFromFiles(files, results, word, callback)
+          wordnet.lookupFromFiles files, results, word, callback
       else
-        wordnet.lookupFromFiles(files, results, word, callback)
+        wordnet.lookupFromFiles files, results, word, callback
+
 
 lookup = (word, callback) ->
   word = word.toLowerCase().replace(/\s+/g, '_')
@@ -56,11 +59,13 @@ lookup = (word, callback) ->
     {index: this.advIndex, data: this.advData},
   ], [], word, callback)
 
+
 get = (synsetOffset, pos, callback) ->
   dataFile = this.getDataFile(pos)
   wordnet = this
 
   dataFile.get synsetOffset, callback
+
 
 getDataFile = (pos) ->
   switch pos
@@ -69,17 +74,19 @@ getDataFile = (pos) ->
     when 'a', 's' then @adjData
     when 'r' then @advData
 
+
 loadSynonyms = (synonyms, results, ptrs, callback) ->
   wordnet = this
 
   if ptrs.length > 0
     ptr = ptrs.pop()
 
-    @.get ptr.synsetOffset, ptr.pos, (result) ->
+    @get ptr.synsetOffset, ptr.pos, (result) ->
       synonyms.push(result)
       wordnet.loadSynonyms synonyms, results, ptrs, callback
   else
     wordnet.loadResultSynonyms synonyms, results, callback
+
 
 loadResultSynonyms = (synonyms, results, callback) ->
   wordnet = this
@@ -90,11 +97,13 @@ loadResultSynonyms = (synonyms, results, callback) ->
   else
     callback(synonyms)
 
+
 lookupSynonyms = (word, callback) ->
   wordnet = this
 
   wordnet.lookup word, (results) ->
     wordnet.loadResultSynonyms [], results, callback
+
 
 getSynonyms = () ->
   wordnet = this
@@ -102,8 +111,21 @@ getSynonyms = () ->
   pos = if arguments[0].pos then arguments[0].pos else arguments[1]
   synsetOffset = if arguments[0].synsetOffset then arguments[0].synsetOffset else arguments[0]
 
-  this.get synsetOffset, pos, (result) ->
+  @get synsetOffset, pos, (result) ->
     wordnet.loadSynonyms [], [], result.ptrs, callback
+
+
+close = () ->
+  @nounIndex.close()
+  @verbIndex.close()
+  @adjIndex.close()
+  @advIndex.close()
+
+  @nounData.close()
+  @verbData.close()
+  @adjData.close()
+  @advData.close()
+
 
 WordNet = (dataDir) ->
 

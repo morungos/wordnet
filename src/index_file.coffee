@@ -22,9 +22,11 @@ WordNetFile = require('./wordnet_file')
 fs = require('fs')
 util = require('util')
 
+
 getFileSize = (path) ->
   stat = fs.statSync(path)
   stat.size
+
 
 findPrevEOL = (fd, pos, callback) ->
   buff = new Buffer(1024);
@@ -43,11 +45,14 @@ readLine = (fd, pos, callback) ->
   findPrevEOL fd, pos, (pos) ->
     WordNetFile.appendLineChar fd, pos, 0, buff, callback
 
-miss = (callback) -> callback({status: 'miss'})
+
+miss = (callback) -> 
+  callback({status: 'miss'})
+
 
 findAt = (fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
   if lastPos == pos || pos >= size
-    miss(callback);
+    miss callback
   else
     readLine fd, pos, (line) ->
       tokens = line.split(/\s+/)
@@ -65,10 +70,11 @@ findAt = (fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
         else
           findAt fd, size, pos - adjustment, pos, adjustment, searchKey, callback, key
 
+
 find = (searchKey, callback) ->
   indexFile = this
 
-  indexFile.open (err, fd, done) ->
+  indexFile.open (err, fd) ->
     if err
       console.log(err);
     else
@@ -76,7 +82,7 @@ find = (searchKey, callback) ->
       pos = Math.ceil(size / 2)
       findAt fd, size, pos, null, pos, searchKey, (result)->
         callback(result)
-        done()
+
 
 lookupFromFile = (word, callback) ->
   @find word, (record) ->
@@ -103,11 +109,14 @@ lookupFromFile = (word, callback) ->
 
     callback(indexRecord)
 
+
 lookup = (word, callback) ->
   @lookupFromFile(word, callback)
 
+
 IndexFile = (dataDir, name) ->
   WordNetFile.call(this, dataDir, 'index.' + name)
+
 
 util.inherits(IndexFile, WordNetFile)
 
