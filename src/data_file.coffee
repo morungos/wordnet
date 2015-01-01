@@ -22,6 +22,7 @@ WordNetFile = require('./wordnet_file')
 fs = require('fs')
 util = require('util')
 
+
 get = (location, callback) ->
   buff = new Buffer(4096)
 
@@ -66,6 +67,7 @@ get = (location, callback) ->
         def: definition
         exp: examples
       }
+
 
 DataFile = (dataDir, name) ->
   WordNetFile.call(this, dataDir, 'data.' + name)
