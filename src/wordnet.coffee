@@ -53,15 +53,14 @@ lookupFromFiles = (files, results, word, callback) ->
         wordnet.lookupFromFiles files, results, word, callback
 
 
-lookup = (word, callback) ->
+lookup = (word, pos, callback) ->
+  wordnet = this
   word = word.toLowerCase().replace(/\s+/g, '_')
+  if ! callback?
+    [pos, callback] = [false, pos]
 
-  @lookupFromFiles([
-    {index: this.nounIndex, data: this.nounData},
-    {index: this.verbIndex, data: this.verbData},
-    {index: this.adjIndex, data: this.adjData},
-    {index: this.advIndex, data: this.advData},
-  ], [], word, callback)
+  selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
+  wordnet.lookupFromFiles selectedFiles, [], word, callback
 
 
 get = (synsetOffset, pos, callback) ->
@@ -175,6 +174,13 @@ WordNet = (dataDir) ->
   @verbData = new DataFile(dataDir, 'verb')
   @adjData = new DataFile(dataDir, 'adj')
   @advData = new DataFile(dataDir, 'adv')
+
+  @allFiles = [
+    {index: @nounIndex, data: @nounData, pos: 'n'}
+    {index: @verbIndex, data: @verbData, pos: 'v'}
+    {index: @adjIndex, data: @adjData, pos: 'a'}
+    {index: @advIndex, data: @advData, pos: 'r'}
+  ]
 
   @get = get
   @path = dataDir

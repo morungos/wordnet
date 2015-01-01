@@ -17,6 +17,13 @@ describe 'wordnet', () ->
       results[0].should.have.property('synsetOffset', 3832647)
       done()
 
+  it 'should pass filtered lookup method', (done) ->
+    wordnet.lookup 'lie', 'v', (results) ->
+      should.exist(results)
+      results.should.be.an.instanceOf(Array)
+      results.should.have.length(7)
+      done()
+
   it 'should implement get method', (done) ->
     wordnet.get 4424418, 'n', (results) ->
       should.exist(results)
@@ -29,6 +36,6 @@ describe 'wordnet', () ->
       ## Since the default WNdb doesn't include exclusions, expect an error
       should.exist(err)
       err.should.have.property('code', 'ENOENT')
-      
+
       done()
 
