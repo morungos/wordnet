@@ -53,14 +53,13 @@ lookupFromFiles = (files, results, word, callback) ->
         wordnet.lookupFromFiles files, results, word, callback
 
 
-lookup = (word, pos, callback) ->
+lookup = (input, callback) ->
   wordnet = this
-  word = word.toLowerCase().replace(/\s+/g, '_')
-  if ! callback?
-    [pos, callback] = [false, pos]
+  [word, pos] = input.split('#')
+  lword = word.toLowerCase().replace(/\s+/g, '_')
 
   selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
-  wordnet.lookupFromFiles selectedFiles, [], word, callback
+  wordnet.lookupFromFiles selectedFiles, [], lword, callback
 
 
 get = (synsetOffset, pos, callback) ->

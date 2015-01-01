@@ -18,7 +18,7 @@ describe 'wordnet', () ->
       done()
 
   it 'should pass filtered lookup method', (done) ->
-    wordnet.lookup 'lie', 'v', (results) ->
+    wordnet.lookup 'lie#v', (results) ->
       should.exist(results)
       results.should.be.an.instanceOf(Array)
       results.should.have.length(7)
