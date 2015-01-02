@@ -44,6 +44,5 @@ describe 'wordnet', () ->
       should.exist(results)
       results.should.be.an.instanceOf(Array)
       results.should.have.length(1)
-      console.log(results[0])
       done()
 
