@@ -34,11 +34,11 @@ get = (location, callback) ->
       wCnt = parseInt(tokens[3], 16)
       synonyms = []
 
-      for i in [0..wCnt - 1]
+      for i in [0..wCnt - 1] by 1
         synonyms.push(tokens[4 + i * 2]);
 
       ptrOffset = (wCnt - 1) * 2 + 6
-      for i in [0..parseInt(tokens[ptrOffset], 10) - 1] 
+      for i in [0..parseInt(tokens[ptrOffset], 10) - 1] by 1
         ptrs.push {
           pointerSymbol: tokens[ptrOffset + 1 + i * 4]
           synsetOffset: parseInt(tokens[ptrOffset + 2 + i * 4], 10)

@@ -39,3 +39,11 @@ describe 'wordnet', () ->
 
       done()
 
+  it 'should succeed for words with odd glosses', (done) ->
+    wordnet.lookup 'in#r', (results) ->
+      should.exist(results)
+      results.should.be.an.instanceOf(Array)
+      results.should.have.length(1)
+      console.log(results[0])
+      done()
+

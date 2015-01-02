@@ -92,10 +92,10 @@ lookupFromFile = (word, callback) ->
       ptrs = []
       offsets = []
 
-      for i in [0..parseInt(record.tokens[3]) - 1]
+      for i in [0..parseInt(record.tokens[3]) - 1] by 1
         ptrs.push(record.tokens[i])
 
-      for i in [0..parseInt(record.tokens[2]) - 1]
+      for i in [0..parseInt(record.tokens[2]) - 1] by 1
         offsets.push(parseInt(record.tokens[ptrs.length + 6 + i], 10))
 
       indexRecord = {
