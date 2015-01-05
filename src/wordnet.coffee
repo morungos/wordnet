@@ -42,7 +42,7 @@ tokenDetach = (string) ->
   length = word.length
 
   switch pos
-    when 'n' then
+    when 'n'
       detach.push word.substring(0, length - 1) if word.endsWith("s")
       detach.push word.substring(0, length - 2) if word.endsWith("ses")
       detach.push word.substring(0, length - 2) if word.endsWith("xes")
@@ -52,7 +52,7 @@ tokenDetach = (string) ->
       detach.push word.substring(0, length - 3) + "man" if word.endsWith("men")
       detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
 
-    when 'v' then
+    when 'v'
       detach.push word.substring(0, length - 1) if word.endsWith("s")
       detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
       detach.push word.substring(0, length - 2) if word.endsWith("es")
@@ -61,7 +61,7 @@ tokenDetach = (string) ->
       detach.push word.substring(0, length - 3) + "e" if word.endsWith("ing")
       detach.push word.substring(0, length - 3) if word.endsWith("ing")
 
-    when 'r' then
+    when 'r'
       detach.push word.substring(0, length - 2) if word.endsWith("er")
       detach.push word.substring(0, length - 1) if word.endsWith("er")
       detach.push word.substring(0, length - 3) if word.endsWith("est")
@@ -70,175 +70,164 @@ tokenDetach = (string) ->
   unique(detach)
 
 
-
-pushResults = (data, results, offsets, callback) ->
-  wordnet = @
-
-  if offsets.length == 0
-    callback(results)
-  else
-    data.get offsets.pop(), (record) ->
-      results.push(record)
-      wordnet.pushResults(data, results, offsets, callback)
+_forms = (string) ->
+  [word, pos] = string.split('#')
 
 
-lookupFromFiles = (files, results, word, callback) ->
-  wordnet = this;
+class WordNet
 
-  if files.length == 0
-    callback(results)
-  else
-    file = files.pop()
+  constructor: (dataDir) ->
 
-    file.index.lookup word, (record) ->
-      if record
-        wordnet.pushResults file.data, results, record.synsetOffset, () ->
+    if !dataDir
+      try
+        WNdb = require('WNdb')
+      catch e
+        console.error("Please 'npm install WNdb' before using WordNet module or specify a dict directory.")
+        throw e
+      dataDir = WNdb.path
+
+    @path = dataDir
+
+    @nounIndex = new IndexFile(dataDir, 'noun')
+    @verbIndex = new IndexFile(dataDir, 'verb')
+    @adjIndex = new IndexFile(dataDir, 'adj')
+    @advIndex = new IndexFile(dataDir, 'adv')
+
+    @nounData = new DataFile(dataDir, 'noun')
+    @verbData = new DataFile(dataDir, 'verb')
+    @adjData = new DataFile(dataDir, 'adj')
+    @advData = new DataFile(dataDir, 'adv')
+
+    @allFiles = [
+      {index: @nounIndex, data: @nounData, pos: 'n'}
+      {index: @verbIndex, data: @verbData, pos: 'v'}
+      {index: @adjIndex, data: @adjData, pos: 'a'}
+      {index: @advIndex, data: @advData, pos: 'r'}
+    ]
+
+  get: (synsetOffset, pos, callback) ->
+    dataFile = @getDataFile(pos)
+    dataFile.get synsetOffset, callback
+
+
+  lookup: (input, callback) ->
+    wordnet = @
+    [word, pos] = input.split('#')
+    lword = word.toLowerCase().replace(/\s+/g, '_')
+
+    selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
+    wordnet.lookupFromFiles selectedFiles, [], lword, callback
+
+
+  lookupFromFiles: (files, results, word, callback) ->
+    wordnet = @
+
+    if files.length == 0
+      callback(results)
+    else
+      file = files.pop()
+
+      file.index.lookup word, (record) ->
+        if record
+          wordnet.pushResults file.data, results, record.synsetOffset, () ->
+            wordnet.lookupFromFiles files, results, word, callback
+        else
           wordnet.lookupFromFiles files, results, word, callback
-      else
-        wordnet.lookupFromFiles files, results, word, callback
 
 
-lookup = (input, callback) ->
-  wordnet = this
-  [word, pos] = input.split('#')
-  lword = word.toLowerCase().replace(/\s+/g, '_')
+  pushResults: (data, results, offsets, callback) ->
+    wordnet = @
 
-  selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
-  wordnet.lookupFromFiles selectedFiles, [], lword, callback
-
-
-get = (synsetOffset, pos, callback) ->
-  dataFile = this.getDataFile(pos)
-  wordnet = this
-
-  dataFile.get synsetOffset, callback
+    if offsets.length == 0
+      callback(results)
+    else
+      data.get offsets.pop(), (record) ->
+        results.push(record)
+        wordnet.pushResults(data, results, offsets, callback)
 
 
-getDataFile = (pos) ->
-  switch pos
-    when 'n' then @nounData
-    when 'v' then @verbData
-    when 'a', 's' then @adjData
-    when 'r' then @advData
+  loadResultSynonyms: (synonyms, results, callback) ->
+    wordnet = this
+
+    if results.length > 0
+      result = results.pop()
+      wordnet.loadSynonyms synonyms, results, result.ptrs, callback
+    else
+      callback(synonyms)
 
 
-loadSynonyms = (synonyms, results, ptrs, callback) ->
-  wordnet = this
+  loadSynonyms: (synonyms, results, ptrs, callback) ->
+    wordnet = this
 
-  if ptrs.length > 0
-    ptr = ptrs.pop()
+    if ptrs.length > 0
+      ptr = ptrs.pop()
 
-    @get ptr.synsetOffset, ptr.pos, (result) ->
-      synonyms.push(result)
-      wordnet.loadSynonyms synonyms, results, ptrs, callback
-  else
-    wordnet.loadResultSynonyms synonyms, results, callback
-
-
-loadResultSynonyms = (synonyms, results, callback) ->
-  wordnet = this
-
-  if results.length > 0
-    result = results.pop()
-    wordnet.loadSynonyms synonyms, results, result.ptrs, callback
-  else
-    callback(synonyms)
+      @get ptr.synsetOffset, ptr.pos, (result) ->
+        synonyms.push(result)
+        wordnet.loadSynonyms synonyms, results, ptrs, callback
+    else
+      wordnet.loadResultSynonyms synonyms, results, callback
 
 
-lookupSynonyms = (word, callback) ->
-  wordnet = this
+  lookupSynonyms: (word, callback) ->
+    wordnet = this
 
-  wordnet.lookup word, (results) ->
-    wordnet.loadResultSynonyms [], results, callback
-
-
-getSynonyms = () ->
-  wordnet = this
-  callback = if arguments[2] then arguments[2] else arguments[1]
-  pos = if arguments[0].pos then arguments[0].pos else arguments[1]
-  synsetOffset = if arguments[0].synsetOffset then arguments[0].synsetOffset else arguments[0]
-
-  @get synsetOffset, pos, (result) ->
-    wordnet.loadSynonyms [], [], result.ptrs, callback
+    wordnet.lookup word, (results) ->
+      wordnet.loadResultSynonyms [], results, callback
 
 
-close = () ->
-  @nounIndex.close()
-  @verbIndex.close()
-  @adjIndex.close()
-  @advIndex.close()
+  getSynonyms: () ->
+    wordnet = this
+    callback = if arguments[2] then arguments[2] else arguments[1]
+    pos = if arguments[0].pos then arguments[0].pos else arguments[1]
+    synsetOffset = if arguments[0].synsetOffset then arguments[0].synsetOffset else arguments[0]
 
-  @nounData.close()
-  @verbData.close()
-  @adjData.close()
-  @advData.close()
+    @get synsetOffset, pos, (result) ->
+      wordnet.loadSynonyms [], [], result.ptrs, callback
 
 
-exclusions = [
-  {name: "noun.exc", pos: 'n'},
-  {name: "verb.exc", pos: 'v'},
-  {name: "adj.exc", pos: 'a'},
-  {name: "adv.exc", pos: 'r'},
-]
-
-loadExclusions = (callback) ->
-  wordnet = this
-  wordnet.exceptions = {n: {}, v: {}, a: {}, r: {}}
-
-  loadFile = (exclusion, callback) ->
-    fullPath = path.join wordnet.path, exclusion.name
-    fs.readFile fullPath, (err, data) ->
-      return callback(err) if err
-      lines = data.toString().split("\n")
-      for line in lines
-        [term1, term2] = line.split(' ')
-        wordnet.exceptions[exclusion.pos][term1] ?= []
-        wordnet.exceptions[exclusion.pos][term1].push term2
-      callback()
-
-  async.each exclusions, loadFile, callback
+  getDataFile: (pos) ->
+    switch pos
+      when 'n' then @nounData
+      when 'v' then @verbData
+      when 'a', 's' then @adjData
+      when 'r' then @advData
 
 
-WordNet = (dataDir) ->
-
-  if !dataDir
-    try
-      WNdb = require('WNdb')
-    catch e
-      console.error("Please 'npm install WNdb' before using WordNet module or specify a dict directory.")
-      throw e
-    dataDir = WNdb.path
-
-  @nounIndex = new IndexFile(dataDir, 'noun')
-  @verbIndex = new IndexFile(dataDir, 'verb')
-  @adjIndex = new IndexFile(dataDir, 'adj')
-  @advIndex = new IndexFile(dataDir, 'adv')
-
-  @nounData = new DataFile(dataDir, 'noun')
-  @verbData = new DataFile(dataDir, 'verb')
-  @adjData = new DataFile(dataDir, 'adj')
-  @advData = new DataFile(dataDir, 'adv')
-
-  @allFiles = [
-    {index: @nounIndex, data: @nounData, pos: 'n'}
-    {index: @verbIndex, data: @verbData, pos: 'v'}
-    {index: @adjIndex, data: @adjData, pos: 'a'}
-    {index: @advIndex, data: @advData, pos: 'r'}
+  exclusions = [
+    {name: "noun.exc", pos: 'n'},
+    {name: "verb.exc", pos: 'v'},
+    {name: "adj.exc", pos: 'a'},
+    {name: "adv.exc", pos: 'r'},
   ]
 
-  @get = get
-  @path = dataDir
-  @lookup = lookup
-  @lookupFromFiles = lookupFromFiles
-  @pushResults = pushResults
-  @loadResultSynonyms = loadResultSynonyms
-  @loadSynonyms = loadSynonyms
-  @lookupSynonyms = lookupSynonyms
-  @getSynonyms = getSynonyms
-  @getDataFile = getDataFile
-  @loadExclusions = loadExclusions
+  loadExclusions: (callback) ->
+    wordnet = @
+    wordnet.exceptions = {n: {}, v: {}, a: {}, r: {}}
+    loadFile = (exclusion, callback) ->
+      fullPath = path.join wordnet.path, exclusion.name
+      fs.readFile fullPath, (err, data) ->
+        return callback(err) if err
+        lines = data.toString().split("\n")
+        for line in lines
+          [term1, term2] = line.split(' ')
+          wordnet.exceptions[exclusion.pos][term1] ?= []
+          wordnet.exceptions[exclusion.pos][term1].push term2
+        callback()
 
-  @
+    async.each exclusions, loadFile, callback
+
+
+  close: () ->
+    @nounIndex.close()
+    @verbIndex.close()
+    @adjIndex.close()
+    @advIndex.close()
+
+    @nounData.close()
+    @verbData.close()
+    @adjData.close()
+    @advData.close()
 
 
 module.exports = WordNet
