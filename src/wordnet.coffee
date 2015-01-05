@@ -70,10 +70,6 @@ tokenDetach = (string) ->
   unique(detach)
 
 
-_forms = (string) ->
-  [word, pos] = string.split('#')
-
-
 class WordNet
 
   constructor: (dataDir) ->
@@ -228,6 +224,48 @@ class WordNet
     @verbData.close()
     @adjData.close()
     @advData.close()
+
+
+
+  _forms: (string) ->
+    wordnet = @
+
+    [word, pos] = string.split('#')
+
+    lword = word.toLowerCase()
+
+    ## First check to see if we have an exclusion set
+    exclusion = wordnet.exclusions[pos]?[lword]
+    return [word].concat(exclusion) if exclusion
+
+    token = word.split(/[ _]/g)
+
+    ## If a single term, process using tokenDetach
+    if token.length == 1
+      return tokenDetach(token[0] + "#" + pos)
+
+    ## Otherwise, handle the forms recursively
+    forms = tokens.map (token) -> _forms(token)
+
+    ## Now generate all possible token sequences (collocations)
+    rtn = []
+    index = (0 for token in tokens)
+
+    while true
+      colloc = forms[0][index[0]]
+      for token, i in tokens
+        colloc = colloc + '_' + forms[i][index[i]]
+      rtn.push colloc
+
+      for token, i in tokens
+        break if ++index[i] < forms[i].length
+        index[i] = 0
+
+      if i > tokens.length
+        break
+
+    return rtn
+
 
 
 module.exports = WordNet
