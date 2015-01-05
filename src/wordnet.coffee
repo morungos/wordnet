@@ -67,13 +67,7 @@ tokenDetach = (string) ->
       detach.push word.substring(0, length - 3) if word.endsWith("est")
       detach.push word.substring(0, length - 2) if word.endsWith("est")
 
-
-
-    $self->removeDuplicates(\@detach);
-    return @detach;
-}
-
-
+  unique(detach)
 
 
 
