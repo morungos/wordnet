@@ -227,10 +227,8 @@ class WordNet
 
 
 
-  _forms: (string) ->
+  _forms: (word, pos) ->
     wordnet = @
-
-    [word, pos] = string.split('#')
 
     lword = word.toLowerCase()
 
@@ -245,9 +243,9 @@ class WordNet
       return tokenDetach(token[0] + "#" + pos)
 
     ## Otherwise, handle the forms recursively
-    forms = tokens.map (token) -> _forms(token)
+    forms = tokens.map (token) -> _forms(token, pos)
 
-    ## Now generate all possible token sequences (collocations)
+    ## Now generate all possible token sequenc,es (collocations)
     rtn = []
     index = (0 for token in tokens)
 
@@ -266,6 +264,22 @@ class WordNet
 
     return rtn
 
+
+    forms: (string) ->
+      [word, pos, sense] = string.split('#')
+      rtn = _forms(word, pos)
+      (element + "#" + pos for element in rtn)
+
+
+    validForms: (string) ->
+      [word, pos, sense] = string.split('#')
+
+      if ! pos
+        ['n', 'v', 'a', 'r']
+          .map (pos) -> @validForms(string + "#" + pos)
+          .reduce (previous, current) -> previous.concat(current)
+      else
+        possibleForms = forms(word + "#" + pos)
 
 
 module.exports = WordNet
