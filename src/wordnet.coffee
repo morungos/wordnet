@@ -27,49 +27,6 @@ fs = require('fs')
 
 require('es6-shim')
 
-unique = (a) ->
-  found = {}
-  a.filter (item) ->
-    if found[item]
-      false
-    else
-      found[item] = true
-
-tokenDetach = (string) ->
-  [word, pos, sense] = string.split('#')
-
-  detach = []
-  length = word.length
-
-  switch pos
-    when 'n'
-      detach.push word.substring(0, length - 1) if word.endsWith("s")
-      detach.push word.substring(0, length - 2) if word.endsWith("ses")
-      detach.push word.substring(0, length - 2) if word.endsWith("xes")
-      detach.push word.substring(0, length - 2) if word.endsWith("zes")
-      detach.push word.substring(0, length - 2) if word.endsWith("ches")
-      detach.push word.substring(0, length - 2) if word.endsWith("shes")
-      detach.push word.substring(0, length - 3) + "man" if word.endsWith("men")
-      detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
-
-    when 'v'
-      detach.push word.substring(0, length - 1) if word.endsWith("s")
-      detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
-      detach.push word.substring(0, length - 2) if word.endsWith("es")
-      detach.push word.substring(0, length - 1) if word.endsWith("ed")
-      detach.push word.substring(0, length - 2) if word.endsWith("ed")
-      detach.push word.substring(0, length - 3) + "e" if word.endsWith("ing")
-      detach.push word.substring(0, length - 3) if word.endsWith("ing")
-
-    when 'r'
-      detach.push word.substring(0, length - 2) if word.endsWith("er")
-      detach.push word.substring(0, length - 1) if word.endsWith("er")
-      detach.push word.substring(0, length - 3) if word.endsWith("est")
-      detach.push word.substring(0, length - 2) if word.endsWith("est")
-
-  unique(detach)
-
-
 class WordNet
 
   constructor: (dataDir) ->
@@ -113,6 +70,22 @@ class WordNet
 
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, callback
+
+
+  findSense: (input, callback) ->
+    wordnet = @
+    [word, pos, senseNumber] = input.split('#')
+
+    sense = parseInt(senseNumber)
+    if Number.isNaN(sense)
+      throw new Error("Sense number should be an integer")
+    else if sense < 1
+      throw new Error("Sense number should be a positive integer")
+
+    lword = word.toLowerCase().replace(/\s+/g, '_')
+    selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
+    wordnet.lookupFromFiles selectedFiles, [], lword, (response) ->
+      callback(response[sense - 1])
 
 
   lookupFromFiles: (files, results, word, callback) ->
@@ -238,13 +211,57 @@ class WordNet
   ## to WordNet by allowing different forms to be considered. Obviously, it's highly
   ## specific to English. 
 
-  _forms: (word, pos) ->
+  unique = (a) ->
+    found = {}
+    a.filter (item) ->
+      if found[item]
+        false
+      else
+        found[item] = true
+
+  tokenDetach = (string) ->
+    [word, pos, sense] = string.split('#')
+
+    detach = []
+    length = word.length
+
+    switch pos
+      when 'n'
+        detach.push word.substring(0, length - 1) if word.endsWith("s")
+        detach.push word.substring(0, length - 2) if word.endsWith("ses")
+        detach.push word.substring(0, length - 2) if word.endsWith("xes")
+        detach.push word.substring(0, length - 2) if word.endsWith("zes")
+        detach.push word.substring(0, length - 2) if word.endsWith("ches")
+        detach.push word.substring(0, length - 2) if word.endsWith("shes")
+        detach.push word.substring(0, length - 3) + "man" if word.endsWith("men")
+        detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
+
+      when 'v'
+        detach.push word.substring(0, length - 1) if word.endsWith("s")
+        detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
+        detach.push word.substring(0, length - 2) if word.endsWith("es")
+        detach.push word.substring(0, length - 1) if word.endsWith("ed")
+        detach.push word.substring(0, length - 2) if word.endsWith("ed")
+        detach.push word.substring(0, length - 3) + "e" if word.endsWith("ing")
+        detach.push word.substring(0, length - 3) if word.endsWith("ing")
+
+      when 'r'
+        detach.push word.substring(0, length - 2) if word.endsWith("er")
+        detach.push word.substring(0, length - 1) if word.endsWith("er")
+        detach.push word.substring(0, length - 3) if word.endsWith("est")
+        detach.push word.substring(0, length - 2) if word.endsWith("est")
+
+    console.log "X", string, detach
+    unique(detach)
+
+
+  _forms = (word, pos) ->
     wordnet = @
 
     lword = word.toLowerCase()
 
     ## First check to see if we have an exclusion set
-    exclusion = wordnet.exclusions[pos]?[lword]
+    exclusion = wordnet.exclusions?[pos]?[lword]
     return [word].concat(exclusion) if exclusion
 
     token = word.split(/[ _]/g)
@@ -276,13 +293,14 @@ class WordNet
     return rtn
 
 
-  forms: (string) ->
+  forms = (string) ->
     [word, pos, sense] = string.split('#')
     rtn = _forms(word, pos)
     (element + "#" + pos for element in rtn)
 
 
-  validForms: (string) ->
+  _validForms = (string, callback) ->
+    wordnet = @
     [word, pos, sense] = string.split('#')
 
     if ! pos
@@ -291,6 +309,23 @@ class WordNet
         .reduce (previous, current) -> previous.concat(current)
     else
       possibleForms = forms(word + "#" + pos)
+
+      filterFn = (term, done) -> 
+        wordnet.lookup term, (data) ->
+          console.log term, data
+          done(if data.length > 0 then true else false)
+
+      async.filter possibleForms, filterFn, callback
+
+
+  validForms: (string, callback) ->
+    wordnet = @
+    if wordnet.exceptions
+      _validForms(string, callback)
+    else
+      wordnet.loadExclusions () ->
+        _validForms(string, callback)
+
 
 
 module.exports = WordNet
