@@ -25,6 +25,57 @@ async = require('async')
 path = require('path')
 fs = require('fs')
 
+require('es6-shim')
+
+unique = (a) ->
+  found = {}
+  a.filter (item) ->
+    if found[item]
+      false
+    else
+      found[item] = true
+
+tokenDetach = (string) ->
+  [word, pos, sense] = string.split('#')
+
+  detach = []
+  length = word.length
+
+  switch pos
+    when 'n' then
+      detach.push word.substring(0, length - 1) if word.endsWith("s")
+      detach.push word.substring(0, length - 2) if word.endsWith("ses")
+      detach.push word.substring(0, length - 2) if word.endsWith("xes")
+      detach.push word.substring(0, length - 2) if word.endsWith("zes")
+      detach.push word.substring(0, length - 2) if word.endsWith("ches")
+      detach.push word.substring(0, length - 2) if word.endsWith("shes")
+      detach.push word.substring(0, length - 3) + "man" if word.endsWith("men")
+      detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
+
+    when 'v' then
+      detach.push word.substring(0, length - 1) if word.endsWith("s")
+      detach.push word.substring(0, length - 3) + "y" if word.endsWith("ies")
+      detach.push word.substring(0, length - 2) if word.endsWith("es")
+      detach.push word.substring(0, length - 1) if word.endsWith("ed")
+      detach.push word.substring(0, length - 2) if word.endsWith("ed")
+      detach.push word.substring(0, length - 3) + "e" if word.endsWith("ing")
+      detach.push word.substring(0, length - 3) if word.endsWith("ing")
+
+    when 'r' then
+      detach.push word.substring(0, length - 2) if word.endsWith("er")
+      detach.push word.substring(0, length - 1) if word.endsWith("er")
+      detach.push word.substring(0, length - 3) if word.endsWith("est")
+      detach.push word.substring(0, length - 2) if word.endsWith("est")
+
+
+
+    $self->removeDuplicates(\@detach);
+    return @detach;
+}
+
+
+
+
 
 pushResults = (data, results, offsets, callback) ->
   wordnet = @
