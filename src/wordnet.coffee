@@ -190,6 +190,13 @@ class WordNet
       when 'r' then @advData
 
 
+  ## Exclusions aren't part of the node.js source, but they are needed to map some of
+  ## the exceptions in derivations. Really, these should be loaded in the constructor, but
+  ## sadly this code is asynchronous and we really don't want to force everything to 
+  ## block here. That's why a move to promises would be helpful, because all the dependent
+  ## code is also going to be asynchronous and we can chain when we need to. For now, though,
+  ## we'll handle it with callbacks when needed. 
+
   exclusions = [
     {name: "noun.exc", pos: 'n'},
     {name: "verb.exc", pos: 'v'},
@@ -226,6 +233,10 @@ class WordNet
     @advData.close()
 
 
+  ## Implementation of validForms. This isn't part of the original node.js Wordnet,
+  ## and has instead been adapted from WordNet::QueryData. This helps to map words
+  ## to WordNet by allowing different forms to be considered. Obviously, it's highly
+  ## specific to English. 
 
   _forms: (word, pos) ->
     wordnet = @
@@ -265,21 +276,21 @@ class WordNet
     return rtn
 
 
-    forms: (string) ->
-      [word, pos, sense] = string.split('#')
-      rtn = _forms(word, pos)
-      (element + "#" + pos for element in rtn)
+  forms: (string) ->
+    [word, pos, sense] = string.split('#')
+    rtn = _forms(word, pos)
+    (element + "#" + pos for element in rtn)
 
 
-    validForms: (string) ->
-      [word, pos, sense] = string.split('#')
+  validForms: (string) ->
+    [word, pos, sense] = string.split('#')
 
-      if ! pos
-        ['n', 'v', 'a', 'r']
-          .map (pos) -> @validForms(string + "#" + pos)
-          .reduce (previous, current) -> previous.concat(current)
-      else
-        possibleForms = forms(word + "#" + pos)
+    if ! pos
+      ['n', 'v', 'a', 'r']
+        .map (pos) -> @validForms(string + "#" + pos)
+        .reduce (previous, current) -> previous.concat(current)
+    else
+      possibleForms = forms(word + "#" + pos)
 
 
 module.exports = WordNet
