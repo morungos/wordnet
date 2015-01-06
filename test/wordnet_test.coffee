@@ -12,9 +12,9 @@ describe 'wordnet', () ->
 
   describe 'get', () ->
     it 'should succeed', (done) ->
-      wordnet.get 4424418, 'n', (results) ->
+      wordnet.get 3827107, 'n', (results) ->
         should.exist(results)
-        results.should.have.property('gloss', 'a machine for making textiles  ')
+        results.should.have.property('gloss', '(computer science) any computer that is hooked up to a computer network  ')
         done()
 
 
@@ -24,7 +24,7 @@ describe 'wordnet', () ->
       wordnet.lookup 'node', (results) ->
         should.exist(results)
         results.should.be.an.instanceOf(Array)
-        results[0].should.have.property('synsetOffset', 3832647)
+        results[0].should.have.property('synsetOffset', 3827107)
         done()
 
     it 'should succeed for lie#v', (done) ->
@@ -46,11 +46,7 @@ describe 'wordnet', () ->
 
     it 'should load exclusions correctly', (done) ->
       wordnet.loadExclusions (err) ->
-
-        ## Since the default WNdb doesn't include exclusions, expect an error
-        should.exist(err)
-        err.should.have.property('code', 'ENOENT')
-
+        should.not.exist(err)
         done()
 
 

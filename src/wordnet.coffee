@@ -33,9 +33,9 @@ class WordNet
 
     if !dataDir
       try
-        WNdb = require('WNdb')
+        WNdb = require('wndb-with-exceptions')
       catch e
-        console.error("Please 'npm install WNdb' before using WordNet module or specify a dict directory.")
+        console.error("Please 'npm install wndb-with-exceptions' before using WordNet module or specify a dict directory.")
         throw e
       dataDir = WNdb.path
 

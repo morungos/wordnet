@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/morungos/wordnet",
   "devDependencies": {
-    "WNdb": "^3.1.1",
+    "wndb-with-exceptions": "^3.0.1",
     "chai": "^1.10.0",
     "coffee-script": "^1.8.0",
     "gulp": "^3.8.10",
