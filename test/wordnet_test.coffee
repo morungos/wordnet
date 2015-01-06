@@ -45,7 +45,7 @@ describe 'wordnet', () ->
   describe 'loadExclusions', () ->
 
     it 'should load exclusions correctly', (done) ->
-      wordnet.loadExclusions (err) ->
+      wordnet.loadExceptions (err) ->
         should.not.exist(err)
         done()
 
@@ -60,8 +60,8 @@ describe 'wordnet', () ->
 
   describe 'validForms', () ->
 
-    xit 'should succeed for dissatisfied#v', (done) ->
+    it 'should succeed for dissatisfied#v', (done) ->
       wordnet.validForms 'dissatisfied#v', (results) ->
         should.exist(results)
-        console.log results
+        results.should.eql(['dissatisfy#v'])
         done()

@@ -163,35 +163,35 @@ class WordNet
       when 'r' then @advData
 
 
-  ## Exclusions aren't part of the node.js source, but they are needed to map some of
+  ## Exceptions aren't part of the node.js source, but they are needed to map some of
   ## the exceptions in derivations. Really, these should be loaded in the constructor, but
   ## sadly this code is asynchronous and we really don't want to force everything to 
   ## block here. That's why a move to promises would be helpful, because all the dependent
   ## code is also going to be asynchronous and we can chain when we need to. For now, though,
   ## we'll handle it with callbacks when needed. 
 
-  exclusions = [
+  exceptions = [
     {name: "noun.exc", pos: 'n'},
     {name: "verb.exc", pos: 'v'},
     {name: "adj.exc", pos: 'a'},
     {name: "adv.exc", pos: 'r'},
   ]
 
-  loadExclusions: (callback) ->
+  loadExceptions: (callback) ->
     wordnet = @
     wordnet.exceptions = {n: {}, v: {}, a: {}, r: {}}
-    loadFile = (exclusion, callback) ->
-      fullPath = path.join wordnet.path, exclusion.name
+    loadFile = (exception, callback) ->
+      fullPath = path.join wordnet.path, exception.name
       fs.readFile fullPath, (err, data) ->
         return callback(err) if err
         lines = data.toString().split("\n")
         for line in lines
           [term1, term2] = line.split(' ')
-          wordnet.exceptions[exclusion.pos][term1] ?= []
-          wordnet.exceptions[exclusion.pos][term1].push term2
+          wordnet.exceptions[exception.pos][term1] ?= []
+          wordnet.exceptions[exception.pos][term1].push term2
         callback()
 
-    async.each exclusions, loadFile, callback
+    async.each exceptions, loadFile, callback
 
 
   close: () ->
@@ -251,18 +251,15 @@ class WordNet
         detach.push word.substring(0, length - 3) if word.endsWith("est")
         detach.push word.substring(0, length - 2) if word.endsWith("est")
 
-    console.log "X", string, detach
     unique(detach)
 
 
-  _forms = (word, pos) ->
-    wordnet = @
-
+  _forms = (wordnet, word, pos) ->
     lword = word.toLowerCase()
 
-    ## First check to see if we have an exclusion set
-    exclusion = wordnet.exclusions?[pos]?[lword]
-    return [word].concat(exclusion) if exclusion
+    ## First check to see if we have an exception set
+    exception = wordnet.exceptions?[pos]?[lword]
+    return [word].concat(exception) if exception
 
     token = word.split(/[ _]/g)
 
@@ -271,7 +268,7 @@ class WordNet
       return tokenDetach(token[0] + "#" + pos)
 
     ## Otherwise, handle the forms recursively
-    forms = tokens.map (token) -> _forms(token, pos)
+    forms = tokens.map (token) -> _forms(wordnet, token, pos)
 
     ## Now generate all possible token sequenc,es (collocations)
     rtn = []
@@ -293,26 +290,29 @@ class WordNet
     return rtn
 
 
-  forms = (string) ->
+  forms = (wordnet, string) ->
     [word, pos, sense] = string.split('#')
-    rtn = _forms(word, pos)
+    rtn = _forms(wordnet, word, pos)
     (element + "#" + pos for element in rtn)
 
 
-  _validForms = (string, callback) ->
-    wordnet = @
+  _validForms = (wordnet, string, callback) ->
     [word, pos, sense] = string.split('#')
 
     if ! pos
-      ['n', 'v', 'a', 'r']
-        .map (pos) -> @validForms(string + "#" + pos)
-        .reduce (previous, current) -> previous.concat(current)
+      ## No POS, so use a reduce to try them all and concatenate
+      reducer = (previous, current, next) ->
+        _validForms wordnet, string + "#" + current, (err, value) ->
+          next(null, previous.concat(value))
+
+      async.reduce ['n', 'v', 'a', 'r'], [], reducer, callback
+
     else
-      possibleForms = forms(word + "#" + pos)
+
+      possibleForms = forms(wordnet, word + "#" + pos)
 
       filterFn = (term, done) -> 
         wordnet.lookup term, (data) ->
-          console.log term, data
           done(if data.length > 0 then true else false)
 
       async.filter possibleForms, filterFn, callback
@@ -323,8 +323,8 @@ class WordNet
     if wordnet.exceptions
       _validForms(string, callback)
     else
-      wordnet.loadExclusions () ->
-        _validForms(string, callback)
+      wordnet.loadExceptions () ->
+        _validForms(wordnet, string, callback)
 
 
 
