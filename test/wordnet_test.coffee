@@ -60,8 +60,38 @@ describe 'wordnet', () ->
 
   describe 'validForms', () ->
 
+    it 'should succeed for axes#n', (done) ->
+      wordnet.validForms 'axes#n', (results) ->
+        should.exist(results)
+        results.should.eql(['ax#n', 'axis#n'])
+        done()
+
     it 'should succeed for dissatisfied#v', (done) ->
       wordnet.validForms 'dissatisfied#v', (results) ->
         should.exist(results)
         results.should.eql(['dissatisfy#v'])
+        done()
+
+    it 'should succeed for testing#v', (done) ->
+      wordnet.validForms 'testing#v', (results) ->
+        should.exist(results)
+        results.should.eql(['test#v'])
+        done()
+
+    it 'should succeed for checked#v', (done) ->
+      wordnet.validForms 'checked#v', (results) ->
+        should.exist(results)
+        results.should.eql(['check#v'])
+        done()
+
+    it 'should succeed for ghostliest#a', (done) ->
+      wordnet.validForms 'ghostliest#a', (results) ->
+        should.exist(results)
+        results.should.eql(['ghostly#a'])
+        done()
+
+    it 'should succeed for farther#r', (done) ->
+      wordnet.validForms 'farther#r', (results) ->
+        should.exist(results)
+        results.should.eql(['farther#r', 'far#r'])
         done()

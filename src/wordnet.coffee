@@ -186,9 +186,12 @@ class WordNet
         return callback(err) if err
         lines = data.toString().split("\n")
         for line in lines
-          [term1, term2] = line.split(' ')
-          wordnet.exceptions[exception.pos][term1] ?= []
-          wordnet.exceptions[exception.pos][term1].push term2
+          if line.length > 0
+            [term1, term2...] = line.split(' ')
+            temp = wordnet.exceptions[exception.pos]
+            temp[term1] ?= []
+            Array.prototype.push.apply temp[term1], term2
+
         callback()
 
     async.each exceptions, loadFile, callback
