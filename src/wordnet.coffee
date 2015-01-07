@@ -22,6 +22,7 @@ IndexFile = require('./index_file')
 DataFile = require('./data_file')
 
 async = require('async')
+Promise = require('bluebird')
 path = require('path')
 fs = require('fs')
 
@@ -62,6 +63,11 @@ class WordNet
     dataFile = @getDataFile(pos)
     dataFile.get synsetOffset, callback
 
+  getAsync: (synsetOffset, pos) ->
+    wordnet = @
+    new Promise (resolve, reject) ->
+      wordnet.get synsetOffset, pos, (data) -> resolve(data)
+
 
   lookup: (input, callback) ->
     wordnet = @
@@ -70,6 +76,11 @@ class WordNet
 
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, callback
+
+  lookupAsync: (input, callback) ->
+    wordnet = @
+    new Promise (resolve, reject) ->
+      wordnet.lookup input, (data) -> resolve(data)
 
 
   findSense: (input, callback) ->
@@ -86,6 +97,11 @@ class WordNet
     selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, (response) ->
       callback(response[sense - 1])
+
+  findSenseAsync: (input) ->
+    wordnet = @
+    new Promise (resolve, reject) ->
+      wordnet.findSense input, (data) -> resolve(data)
 
 
   lookupFromFiles: (files, results, word, callback) ->
@@ -329,6 +345,10 @@ class WordNet
       wordnet.loadExceptions () ->
         _validForms(wordnet, string, callback)
 
+  validFormsAsync: (string) ->
+    wordnet = @
+    new Promise (resolve, reject) ->
+      wordnet.validForms string, (data) -> resolve(data)
 
 
 module.exports = WordNet
