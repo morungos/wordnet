@@ -15,7 +15,7 @@ each individual low-level query.
 API
 ---
 
-### lookup(word)
+### lookup(word, callback)
 
 Here's an example of looking up definitions for the word, "node".
 
@@ -35,7 +35,11 @@ wordnet.lookup('node', function(results) {
 });
 ```
 
-### get(offset, pos)
+### lookupAsync(word)
+
+Similar to `lookup(word, callback)` but returning a promise.
+
+### get(offset, pos, callback)
 
 Given a synset offset and a part of speech, a definition can be looked up directly.
 
@@ -50,3 +54,21 @@ wordnet.get(4424418, 'n', function(result) {
     console.log(result.synonyms);
 });
 ```
+
+### getAsync(offset, pos)
+
+Similar to `get(offset, pos, callback)` but returning a promise.
+
+### validForms(word, callback)
+
+Returns valid morphological exceptions. 
+
+```javascript
+var wordnet = new WordNet()
+wordnet.validForms('axes#n', console.log);
+```
+
+### validFormsAsync(word)
+
+Similar to `validForms(word, callback)` but returning a promise.
+

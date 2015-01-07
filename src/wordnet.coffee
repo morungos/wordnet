@@ -17,6 +17,14 @@
 ## LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 ## THE SOFTWARE.
+##
+## Significant changes made by Stuart Watt, including:
+## (1) - implementation of logic for morphological exceptions
+## (2) - using sense offsets as per Perl implementations
+## (3) - porting to CoffeeScript for easier validation and better array performance
+## (4) - promisification of much of the API
+## (5) - move to use wndb-with-exceptions instead of WNdb, to provide morphological exceptions
+## (6) - significant improvements in testing
 
 IndexFile = require('./index_file')
 DataFile = require('./data_file')
