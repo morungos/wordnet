@@ -89,6 +89,8 @@ describe 'wordnet', () ->
     it 'should succeed for lie#v#1', (done) ->
       wordnet.findSense 'lie#v#1', (results) ->
         should.exist(results)
+        results.should.have.property('lemma', 'lie_down')
+        results.should.have.property('pos', 'v')
         done()
 
 
@@ -97,6 +99,7 @@ describe 'wordnet', () ->
     it 'should succeed for lie#v#1', (done) ->
       wordnet.findSenseAsync 'lie#v#1'
         .should.eventually.exist
+        .should.eventually.have.property('lemma', 'lie_down')
         .notify(done)
 
 

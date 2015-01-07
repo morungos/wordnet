@@ -12,6 +12,11 @@ methods that make it easier to use for other tasks, and probably higher in perfo
 too. For example, the original implementation opens file handles for more or less 
 each individual low-level query. 
 
+More recently, it includes a promise-based set of methods parallel to callback ones.
+Because most of the access is asynchronous, this does make it easier to use. Methods 
+ending `Async` return promises. This will also assist error handling, when we get to
+implement that, as it was not the strongest part of the original implementation.
+
 API
 ---
 
@@ -72,3 +77,9 @@ wordnet.validForms('axes#n', console.log);
 
 Similar to `validForms(word, callback)` but returning a promise.
 
+
+Future work
+-----------
+
+Error handling needs to be tightened a fair bit, and there is plenty of room to make the API a bit 
+easier to use as well. 
