@@ -36,7 +36,6 @@ appendLineChar = (fd, pos, buffPos, buff, callback) ->
       ## Okay, no newline; extend and tail recurse
       newBuff = new Buffer(length * 2)
       buff.copy(newBuff, 0, 0, length)
-      console.log "Recursing", pos + count, length, newBuff.length
       appendLineChar fd, pos + count, length, newBuff, callback
 
 
