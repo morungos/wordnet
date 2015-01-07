@@ -24,19 +24,20 @@ util = require('util')
 
 
 appendLineChar = (fd, pos, buffPos, buff, callback) ->
-  if buffPos >= buff.length
-    newBuff = new Buffer(buff.length * 2)
-    buff.copy(newBuff, 0, 0, buff.length)
-    buff = newBuff
-
-  fs.read fd, buff, buffPos, 1, pos, (err, count) ->
+  length = buff.length
+  fs.read fd, buff, buffPos, length, pos, (err, count, buffer) ->
     if err
       console.log(err)
-    else 
-      if buff[buffPos] == 10 || buffPos == buff.length
-        callback(buff.slice(0, buffPos).toString('ASCII'))
-      else
-        appendLineChar(fd, pos + 1, buffPos + 1, buff, callback)
+    else
+      for i in [0..count - 1]
+        if buff[i] == 10
+          return callback(buff.slice(0, i).toString('ASCII'))
+
+      ## Okay, no newline; extend and tail recurse
+      newBuff = new Buffer(length * 2)
+      buff.copy(newBuff, 0, 0, length)
+      console.log "Recursing", pos + count, length, newBuff.length
+      appendLineChar fd, pos + count, length, newBuff, callback
 
 
 close = () ->
