@@ -2,6 +2,8 @@ chai = require('chai')
 chai.use(require('chai-as-promised'))
 should = chai.should()
 
+async = require('async')
+
 Wordnet = require('../lib/wordnet')
 
 describe 'wordnet', () ->
@@ -147,6 +149,12 @@ describe 'wordnet', () ->
         results.should.eql(['find#v'])
         done()
 
+    it 'should succeed for are#v', (done) ->
+      wordnet.validForms 'are#v', (results) ->
+        should.exist(results)
+        results.should.eql(['be#v'])
+        done()
+
     it 'should succeed for repeated queries', (done) ->
       wordnet.validForms 'find#v', (results) ->
         should.exist(results)
@@ -155,6 +163,16 @@ describe 'wordnet', () ->
           should.exist(results)
           results.should.eql(['farther#r', 'far#r'])
           done()
+
+    it 'should succeed for a set of queries pushed asynchronously', (done) ->
+      query = (item, callback) ->
+        wordnet.validForms item, (results) ->
+          callback null, results
+
+      async.map ['be#v', 'are#v'], query, (err, results) ->
+        should.exist(results)
+        results.should.deep.eql([['be#v'], ['be#v']])
+        done()
 
 
   describe 'validFormsAsync', () ->
