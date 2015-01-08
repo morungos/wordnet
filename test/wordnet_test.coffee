@@ -141,7 +141,7 @@ describe 'wordnet', () ->
         results.should.eql(['farther#r', 'far#r'])
         done()
 
-    xit 'should succeed for find#v', (done) ->
+    it 'should succeed for find#v', (done) ->
       wordnet.validForms 'find#v', (results) ->
         should.exist(results)
         results.should.eql(['find#v'])

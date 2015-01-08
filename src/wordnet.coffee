@@ -249,7 +249,7 @@ class WordNet
   tokenDetach = (string) ->
     [word, pos, sense] = string.split('#')
 
-    detach = []
+    detach = [word]
     length = word.length
 
     switch pos
