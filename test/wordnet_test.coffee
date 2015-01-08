@@ -147,6 +147,15 @@ describe 'wordnet', () ->
         results.should.eql(['find#v'])
         done()
 
+    it 'should succeed for repeated queries', (done) ->
+      wordnet.validForms 'find#v', (results) ->
+        should.exist(results)
+        results.should.eql(['find#v'])
+        wordnet.validForms 'farther#r', (results) ->
+          should.exist(results)
+          results.should.eql(['farther#r', 'far#r'])
+          done()
+
 
   describe 'validFormsAsync', () ->
 

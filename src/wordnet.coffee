@@ -348,7 +348,7 @@ class WordNet
   validForms: (string, callback) ->
     wordnet = @
     if wordnet.exceptions
-      _validForms(string, callback)
+      _validForms(wordnet, string, callback)
     else
       wordnet.loadExceptions () ->
         _validForms(wordnet, string, callback)
