@@ -78,14 +78,6 @@ describe 'wordnet', () ->
         .notify(done)
 
 
-  describe 'loadExclusions', () ->
-
-    it 'should load exclusions correctly', (done) ->
-      wordnet.loadExceptions (err) ->
-        should.not.exist(err)
-        done()
-
-
   describe 'findSense', () ->
 
     it 'should succeed for lie#v#1', (done) ->

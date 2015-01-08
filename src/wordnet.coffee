@@ -201,24 +201,32 @@ class WordNet
     {name: "adv.exc", pos: 'r'},
   ]
 
-  loadExceptions: (callback) ->
-    wordnet = @
-    wordnet.exceptions = {n: {}, v: {}, a: {}, r: {}}
+  _loadExceptions = (wordnet, callback) ->
+
+    ## Flag while loading, so anyone who tries to use it can check and wait until the load
+    ## is complete, instead of multiple loads happening at once.
+    wordnet.exceptions = 'pending'
+
     loadFile = (exception, callback) ->
       fullPath = path.join wordnet.path, exception.name
       fs.readFile fullPath, (err, data) ->
         return callback(err) if err
+        temp = {}
         lines = data.toString().split("\n")
         for line in lines
           if line.length > 0
             [term1, term2...] = line.split(' ')
-            temp = wordnet.exceptions[exception.pos]
             temp[term1] ?= []
             Array.prototype.push.apply temp[term1], term2
 
-        callback()
+        callback null, {pos: exception.pos, data: temp}
 
-    async.each exceptions, loadFile, callback
+    async.map exceptions, loadFile, (err, results) ->
+      exceptions = {}
+      for result in results
+        exceptions[result.pos] = result.data
+      wordnet.exceptions = exceptions
+      callback()
 
 
   close: () ->
@@ -284,8 +292,13 @@ class WordNet
   _forms = (wordnet, word, pos) ->
     lword = word.toLowerCase()
 
+    console.log "Checking exception for", lword, pos
+
     ## First check to see if we have an exception set
-    exception = wordnet.exceptions?[pos]?[lword]
+    exception = wordnet.exceptions[pos]?[lword]
+
+    console.log "Found", exception
+    
     return [word].concat(exception) if exception
 
     token = word.split(/[ _]/g)
@@ -347,10 +360,13 @@ class WordNet
 
   validForms: (string, callback) ->
     wordnet = @
-    if wordnet.exceptions
+    if wordnet.exceptions == 'pending'
+      process.nextTick () ->
+        validForms(wordnet, string, callback)
+    else if wordnet.exceptions
       _validForms(wordnet, string, callback)
     else
-      wordnet.loadExceptions () ->
+      _loadExceptions wordnet, () ->
         _validForms(wordnet, string, callback)
 
   validFormsAsync: (string) ->
