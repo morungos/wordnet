@@ -2,6 +2,12 @@ Release history
 ===============
 
 
+Version 0.1.4
+-------------
+
+ * Changed to setImmediate to avoid recursive process.nextTick
+
+
 Version 0.1.3
 -------------
 
