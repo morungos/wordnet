@@ -359,8 +359,7 @@ class WordNet
       _loadExceptions wordnet, () ->
         _validFormsWithExceptions(wordnet, string, callback)
     else if wordnet.exceptions == 'pending'
-      process.nextTick () ->
-        _validFormsWithExceptions(wordnet, string, callback)
+      setImmediate _validFormsWithExceptions, wordnet, string, callback
     else
       _validForms(wordnet, string, callback)
 
