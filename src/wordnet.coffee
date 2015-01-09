@@ -205,7 +205,7 @@ class WordNet
 
     ## Flag while loading, so anyone who tries to use it can check and wait until the load
     ## is complete, instead of multiple loads happening at once.
-    wordnet.exceptions = 'pending'
+    WordNet::exceptions = 'pending'
 
     loadFile = (exception, callback) ->
       fullPath = path.join wordnet.path, exception.name
@@ -225,7 +225,7 @@ class WordNet
       exceptions = {}
       for result in results
         exceptions[result.pos] = result.data
-      wordnet.exceptions = exceptions
+      WordNet::exceptions = exceptions
       callback()
 
 
@@ -292,13 +292,9 @@ class WordNet
   _forms = (wordnet, word, pos) ->
     lword = word.toLowerCase()
 
-    console.log "Checking exception for", lword, pos
-
     ## First check to see if we have an exception set
     exception = wordnet.exceptions[pos]?[lword]
 
-    console.log "Found", exception
-    
     return [word].concat(exception) if exception
 
     token = word.split(/[ _]/g)
@@ -358,21 +354,23 @@ class WordNet
       async.filter possibleForms, filterFn, callback
 
 
-  validForms: (string, callback) ->
-    wordnet = @
-    if wordnet.exceptions == 'pending'
-      process.nextTick () ->
-        validForms(wordnet, string, callback)
-    else if wordnet.exceptions
-      _validForms(wordnet, string, callback)
-    else
+  _validFormsWithExceptions = (wordnet, string, callback) ->
+    if wordnet.exceptions == undefined
       _loadExceptions wordnet, () ->
-        _validForms(wordnet, string, callback)
+        _validFormsWithExceptions(wordnet, string, callback)
+    else if wordnet.exceptions == 'pending'
+      process.nextTick () ->
+        _validFormsWithExceptions(wordnet, string, callback)
+    else
+      _validForms(wordnet, string, callback)
+
+
+  validForms: (string, callback) ->
+    _validFormsWithExceptions @, string, callback
 
   validFormsAsync: (string) ->
-    wordnet = @
-    new Promise (resolve, reject) ->
-      wordnet.validForms string, (data) -> resolve(data)
+    new Promise (resolve, reject) =>
+      @validForms string, (data) -> resolve(data)
 
 
 module.exports = WordNet
