@@ -112,6 +112,26 @@ class WordNet
       wordnet.findSense input, (data) -> resolve(data)
 
 
+  querySense: (input, callback) ->
+    wordnet = @
+    [word, pos] = input.split('#')
+
+    wordnet.lookup input, (results)  ->
+      senseCounts = {}
+      senses = for sense, i in results
+        pos = sense.pos
+        pos = 'a' if pos == 's'
+        senseCounts[pos] ?= 1
+        word + "#" + pos + "#" + senseCounts[pos]++
+
+      callback(senses)
+
+  querySenseAsync: (input) ->
+    wordnet = @
+    new Promise (resolve, reject) ->
+      wordnet.querySense input, (data) -> resolve(data)
+
+
   lookupFromFiles: (files, results, word, callback) ->
     wordnet = @
 
