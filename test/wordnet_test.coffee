@@ -78,6 +78,40 @@ describe 'wordnet', () ->
         .notify(done)
 
 
+  describe 'querySense', () ->
+    it 'should succeed for node', (done) ->
+      wordnet.querySense 'node', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(8)
+        done()
+
+    it 'should succeed for ghostly#a', (done) ->
+      wordnet.querySense 'ghostly#a', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(1)
+        results.should.eql(['ghostly#a#1'])
+        done()
+
+
+  describe 'querySenseAsync', () ->
+    it 'should succeed for node', (done) ->
+      wordnet.querySenseAsync 'node'
+        .should.eventually.exist
+        .should.eventually.be.an.instanceOf(Array)
+        .should.eventually.have.length(8)
+        done()
+
+    it 'should succeed for ghostly#a', (done) ->
+      wordnet.querySenseAsync 'ghostly#a'
+        .should.eventually.exist
+        .should.eventually.be.an.instanceOf(Array)
+        .should.eventually.have.length(1)
+        .should.eventually.eql(['ghostly#a#1'])
+        done()
+
+
   describe 'findSense', () ->
 
     it 'should succeed for lie#v#1', (done) ->

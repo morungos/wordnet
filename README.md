@@ -77,6 +77,20 @@ wordnet.validForms('axes#n', console.log);
 
 Similar to `validForms(word, callback)` but returning a promise.
 
+### querySense(query, callback)
+
+Queries WordNet to find all the senses of a given word, optionally with a 
+part-of-speech. 
+
+```javascript
+var wordnet = new WordNet()
+wordnet.querySense('axes#n', console.log);
+```
+
+### querySenseAsync(query)
+
+Similar to `querySense(query, callback)` but returning a promise.
+
 
 Future work
 -----------
