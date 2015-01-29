@@ -17,8 +17,39 @@ Because most of the access is asynchronous, this does make it easier to use. Met
 ending `Async` return promises. This will also assist error handling, when we get to
 implement that, as it was not the strongest part of the original implementation.
 
+Usage
+-----
+
+You'll need a copy of WordNet. There are several on Github, but for full functionality, 
+at least for now, I'd suggest using: `wndb-with-exceptions`, available at: 
+https://github.com/morungos/WNdb-with-exceptions, as it includes the morphological
+exception lists needed by `validForms`. If you don't care about that, you can get
+by with https://github.com/moos/WNdb, or even just download WordNet directly. 
+
+This module doesn't download and install the WordNet files, because there are 
+several versions and it feels impolite to download and install one for you. 
+
+For easy use, therefore, it might be best to add both this module and a WordNet 
+data module to your project, e.g.:
+
+```
+npm install node-wordnet --save
+npm install wndb-with-exceptions --save
+```
+
 API
 ---
+
+### new WordNet([directory])
+
+The constructor returns a new object to access a WordNet database at the specified
+directory. If no directory is passed, the module uses `require` to locate 
+`wndb-with-exceptions`, so if you don't want to deploy your own WordNet, all you
+need to do is add `wndb-with-exceptions` as an application dependency and not 
+pass a directory to the constructor. 
+
+The original WordNet data files can always be manually downloaded and installed
+anywhere from http://wordnet.princeton.edu/wordnet/download. 
 
 ### lookup(word, callback)
 
