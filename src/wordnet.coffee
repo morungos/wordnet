@@ -358,10 +358,14 @@ class WordNet
     if ! pos
       ## No POS, so use a reduce to try them all and concatenate
       reducer = (previous, current, next) ->
-        _validForms wordnet, string + "#" + current, (err, value) ->
-          next(null, previous.concat(value))
+        _validForms wordnet, string + "#" + current, (value) ->
+          if value == undefined
+            next(null, previous)
+          else
+            next(null, previous.concat(value))
 
-      async.reduce ['n', 'v', 'a', 'r'], [], reducer, callback
+      async.reduce ['n', 'v', 'a', 'r'], [], reducer, (err, result) ->
+       callback result
 
     else
 
