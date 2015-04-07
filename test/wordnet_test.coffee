@@ -190,6 +190,20 @@ describe 'wordnet', () ->
           results.should.eql(['farther#r', 'far#r'])
           done()
 
+    ## Tests for #5
+    it 'should succeed for fought#v', (done) ->
+      wordnet.validForms 'fought#v', (results) ->
+        should.exist(results)
+        results.should.eql(['fight#v'])
+        done()
+
+    ## Tests for #5
+    it 'should succeed for fought', (done) ->
+      wordnet.validForms 'fought', (results) ->
+        should.exist(results)
+        results.should.eql(['fight#v'])
+        done()
+
     it 'should succeed for a set of queries pushed asynchronously', (done) ->
       query = (item, callback) ->
         wordnet.validForms item, (results) ->
