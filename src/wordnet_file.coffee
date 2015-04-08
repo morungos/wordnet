@@ -25,7 +25,8 @@ util = require('util')
 
 appendLineChar = (fd, pos, buffPos, buff, callback) ->
   length = buff.length
-  fs.read fd, buff, buffPos, length, pos, (err, count, buffer) ->
+  space = length - buffPos
+  fs.read fd, buff, buffPos, space, pos, (err, count, buffer) ->
     if err
       console.log(err)
     else
@@ -36,7 +37,7 @@ appendLineChar = (fd, pos, buffPos, buff, callback) ->
       ## Okay, no newline; extend and tail recurse
       newBuff = new Buffer(length * 2)
       buff.copy(newBuff, 0, 0, length)
-      appendLineChar fd, pos + count, length, newBuff, callback
+      appendLineChar fd, pos + length, length, newBuff, callback
 
 
 close = () ->

@@ -58,7 +58,7 @@ describe 'wordnet', () ->
       wordnet.lookup 'alter#v', (results) ->
         should.exist(results)
         results.should.be.an.instanceOf(Array)
-        results.should.have.length(7)
+        results.should.have.length(5)
         done()
 
 
