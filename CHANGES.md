@@ -2,6 +2,12 @@ Release history
 ===============
 
 
+Version 0.1.7
+-------------
+
+ * Fixed a bug in reading data that extends beyond a single block
+
+
 Version 0.1.6
 -------------
 
