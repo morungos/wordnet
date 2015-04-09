@@ -81,14 +81,14 @@ describe 'wordnet with cache enabled', () ->
   describe 'validForms', () ->
 
     it 'should succeed for axes#n', (done) ->
-      wordnet.validFormsAsync 'axes#n'
-        .should.eventually.exist
-        .should.eventually.eql(['ax#n', 'axis#n'])
-        .notify(done)
+      wordnet.validForms 'axes#n', (results) ->
+        should.exist(results)
+        results.should.eql(['ax#n', 'axis#n'])
+        done()
 
     it 'should return the exact same value for a second query', (done) ->
-      wordnet.validFormsAsync 'axes#n'
+      wordnet.validForms 'axes#n', (results) ->
         should.exist(results)
-        wordnet.validFormsAsync 'axes#n'
+        wordnet.validForms 'axes#n', (results2) ->
           (results == results2).should.be.true
           done()
