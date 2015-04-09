@@ -93,7 +93,7 @@ class WordNet
 
   get: (synsetOffset, pos, callback) ->
     wordnet = @
-    query = undefined
+
     if @cache
       query = "get:#{synsetOffset}:#{pos}"
       return callback(hit) if hit = wordnet.cache.get query
@@ -111,7 +111,6 @@ class WordNet
 
   lookup: (input, callback) ->
     wordnet = @
-    query = undefined
     [word, pos] = input.split('#')
     lword = word.toLowerCase().replace(/\s+/g, '_')
 
