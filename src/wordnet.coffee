@@ -116,8 +116,7 @@ class WordNet
     lword = word.toLowerCase().replace(/\s+/g, '_')
 
     if @cache
-      queryPos = pos or 'undefined'
-      query = "lookup:#{lword}:#{queryPos}"
+      query = "lookup:#{input}"
       return callback(hit) if hit = wordnet.cache.get query
 
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
