@@ -2,6 +2,12 @@ Release history
 ===============
 
 
+Version 0.1.8
+-------------
+
+ * Added an optional LRU cache
+
+
 Version 0.1.7
 -------------
 

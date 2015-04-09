@@ -438,6 +438,8 @@ class WordNet
 
 
   validForms: (string, callback) ->
+    wordnet = @
+    
     if @cache
       query = "validForms:#{string}"
       return callback(hit) if hit = wordnet.cache.get query
