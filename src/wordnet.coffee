@@ -111,11 +111,19 @@ class WordNet
 
   lookup: (input, callback) ->
     wordnet = @
+    query = undefined
     [word, pos] = input.split('#')
     lword = word.toLowerCase().replace(/\s+/g, '_')
 
+    if @cache
+      queryPos = pos or 'undefined'
+      query = "lookup:#{lword}:#{queryPos}"
+      return callback(hit) if hit = wordnet.cache.get query
+
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
-    wordnet.lookupFromFiles selectedFiles, [], lword, callback
+    wordnet.lookupFromFiles selectedFiles, [], lword, (results) ->
+      wordnet.cache.set query, results if query
+      callback(results)
 
   lookupAsync: (input, callback) ->
     wordnet = @

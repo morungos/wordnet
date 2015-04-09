@@ -27,3 +27,18 @@ describe 'wordnet with cache enabled', () ->
         wordnet.get 3827107, 'n', (results2) ->
           (results == results2).should.be.true
           done()
+
+  describe 'lookup', () ->
+    it 'should succeed for node', (done) ->
+      wordnet.lookup 'node', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results[0].should.have.property('synsetOffset', 3827107)
+        done()
+
+    it 'should return the exact same value for a second query', (done) ->
+      wordnet.lookup 'node', (results) ->
+        should.exist(results)
+        wordnet.lookup 'node', (results2) ->
+          (results == results2).should.be.true
+          done()
