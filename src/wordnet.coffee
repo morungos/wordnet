@@ -38,27 +38,33 @@ require('es6-shim')
 
 class WordNet
 
-  constructor: (dataDir) ->
+  constructor: (options) ->
 
-    if !dataDir
+    ## For compatibility, if the options are a string, it's just the Wordnet path
+    if typeof options == 'string'
+      options = {dataDir: options}
+    else
+      options ?= {}
+
+    if ! options.dataDir?
       try
         WNdb = require('wndb-with-exceptions')
       catch e
         console.error("Please 'npm install wndb-with-exceptions' before using WordNet module or specify a dict directory.")
         throw e
-      dataDir = WNdb.path
+      options.dataDir = WNdb.path
 
-    @path = dataDir
+    @path = options.dataDir
 
-    @nounIndex = new IndexFile(dataDir, 'noun')
-    @verbIndex = new IndexFile(dataDir, 'verb')
-    @adjIndex = new IndexFile(dataDir, 'adj')
-    @advIndex = new IndexFile(dataDir, 'adv')
+    @nounIndex = new IndexFile(@path, 'noun')
+    @verbIndex = new IndexFile(@path, 'verb')
+    @adjIndex = new IndexFile(@path, 'adj')
+    @advIndex = new IndexFile(@path, 'adv')
 
-    @nounData = new DataFile(dataDir, 'noun')
-    @verbData = new DataFile(dataDir, 'verb')
-    @adjData = new DataFile(dataDir, 'adj')
-    @advData = new DataFile(dataDir, 'adv')
+    @nounData = new DataFile(@path, 'noun')
+    @verbData = new DataFile(@path, 'verb')
+    @adjData = new DataFile(@path, 'adj')
+    @advData = new DataFile(@path, 'adv')
 
     @allFiles = [
       {index: @nounIndex, data: @nounData, pos: 'n'}

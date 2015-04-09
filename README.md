@@ -40,16 +40,22 @@ npm install wndb-with-exceptions --save
 API
 ---
 
-### new WordNet([directory])
+### new WordNet([options | string])
 
-The constructor returns a new object to access a WordNet database at the specified
-directory. If no directory is passed, the module uses `require` to locate 
-`wndb-with-exceptions`, so if you don't want to deploy your own WordNet, all you
-need to do is add `wndb-with-exceptions` as an application dependency and not 
-pass a directory to the constructor. 
+The constructor returns a new object to access a WordNet database. The passed 
+options configure the interface. The following options are available:
 
-The original WordNet data files can always be manually downloaded and installed
-anywhere from http://wordnet.princeton.edu/wordnet/download. 
+ *  __dataDir__ -- specifies the location of the Wordnet directory. 
+
+    If this option isn't passed, the module uses `require` to locate 
+    `wndb-with-exceptions`, so if you don't want to deploy your own WordNet, all you
+    need to do is add `wndb-with-exceptions` as an application dependency and not 
+    pass a directory to the constructor. 
+    The original WordNet data files can always be manually downloaded and installed
+    anywhere from http://wordnet.princeton.edu/wordnet/download. 
+
+    As a shortcut, if you pass a string directly to the constructor, it's interpreted
+    as a Wordnet directory, and all other options default in sensible ways. 
 
 ### lookup(word, callback)
 
