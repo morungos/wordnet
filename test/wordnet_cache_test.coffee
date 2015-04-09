@@ -42,3 +42,19 @@ describe 'wordnet with cache enabled', () ->
         wordnet.lookup 'node', (results2) ->
           (results == results2).should.be.true
           done()
+
+  describe 'findSense', () ->
+
+    it 'should succeed for lie#v#1', (done) ->
+      wordnet.findSense 'lie#v#1', (results) ->
+        should.exist(results)
+        results.should.have.property('lemma', 'lie_down')
+        results.should.have.property('pos', 'v')
+        done()
+
+    it 'should return the exact same value for a second query', (done) ->
+      wordnet.findSense 'lie#v#1', (results) ->
+        should.exist(results)
+        wordnet.findSense 'lie#v#1', (results2) ->
+          (results == results2).should.be.true
+          done()

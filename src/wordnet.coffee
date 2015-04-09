@@ -134,6 +134,10 @@ class WordNet
     wordnet = @
     [word, pos, senseNumber] = input.split('#')
 
+    if @cache
+      query = "findSense:#{input}"
+      return callback(hit) if hit = wordnet.cache.get query
+
     sense = parseInt(senseNumber)
     if Number.isNaN(sense)
       throw new Error("Sense number should be an integer")
@@ -143,7 +147,9 @@ class WordNet
     lword = word.toLowerCase().replace(/\s+/g, '_')
     selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, (response) ->
-      callback(response[sense - 1])
+      result = response[sense - 1]
+      wordnet.cache.set query, result if query
+      callback(result)
 
   findSenseAsync: (input) ->
     wordnet = @
