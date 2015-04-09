@@ -92,8 +92,17 @@ class WordNet
     ]
 
   get: (synsetOffset, pos, callback) ->
-    dataFile = @getDataFile(pos)
-    dataFile.get synsetOffset, callback
+    wordnet = @
+    query = undefined
+    if @cache
+      query = "get:#{synsetOffset}:#{pos}"
+      hit = wordnet.cache.get query
+      return callback(hit) if hit?
+
+    dataFile = wordnet.getDataFile(pos)
+    dataFile.get synsetOffset, (result) ->
+      wordnet.cache.set query, result if query
+      callback(result)
 
   getAsync: (synsetOffset, pos) ->
     wordnet = @
