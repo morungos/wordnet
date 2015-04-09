@@ -96,8 +96,7 @@ class WordNet
     query = undefined
     if @cache
       query = "get:#{synsetOffset}:#{pos}"
-      hit = wordnet.cache.get query
-      return callback(hit) if hit?
+      return callback(hit) if hit = wordnet.cache.get query
 
     dataFile = wordnet.getDataFile(pos)
     dataFile.get synsetOffset, (result) ->
