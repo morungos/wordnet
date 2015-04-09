@@ -26,39 +26,63 @@
 ## (5) - move to use wndb-with-exceptions instead of WNdb, to provide morphological exceptions
 ## (6) - significant improvements in testing
 
-IndexFile = require('./index_file')
-DataFile = require('./data_file')
+IndexFile = require './index_file'
+DataFile =  require './data_file'
 
-async = require('async')
-Promise = require('bluebird')
-path = require('path')
-fs = require('fs')
+async =     require 'async'
+Promise =   require 'bluebird'
+path =      require 'path'
+fs =        require 'fs'
+
+LRU =       require 'lru-cache'
 
 require('es6-shim')
 
 class WordNet
 
-  constructor: (dataDir) ->
+  constructor: (options) ->
 
-    if !dataDir
+    ## For compatibility, if the options are a string, it's just the Wordnet path
+    if typeof options == 'string'
+      options = {dataDir: options}
+    else
+      options ?= {}
+
+
+    if ! options.dataDir?
       try
         WNdb = require('wndb-with-exceptions')
       catch e
         console.error("Please 'npm install wndb-with-exceptions' before using WordNet module or specify a dict directory.")
         throw e
-      dataDir = WNdb.path
+      options.dataDir = WNdb.path
 
-    @path = dataDir
 
-    @nounIndex = new IndexFile(dataDir, 'noun')
-    @verbIndex = new IndexFile(dataDir, 'verb')
-    @adjIndex = new IndexFile(dataDir, 'adj')
-    @advIndex = new IndexFile(dataDir, 'adv')
+    if ! options.cache
+      @cache = null
+    else
+      if options.cache == true
+        options.cache = {
+          max: 2000
+        }
 
-    @nounData = new DataFile(dataDir, 'noun')
-    @verbData = new DataFile(dataDir, 'verb')
-    @adjData = new DataFile(dataDir, 'adj')
-    @advData = new DataFile(dataDir, 'adv')
+      if typeof options.cache == 'object' and typeof options.cache.get == 'function'
+        @cache = options.cache
+      else
+        @cache = LRU options.cache
+
+
+    @path = options.dataDir
+
+    @nounIndex = new IndexFile(@path, 'noun')
+    @verbIndex = new IndexFile(@path, 'verb')
+    @adjIndex = new IndexFile(@path, 'adj')
+    @advIndex = new IndexFile(@path, 'adv')
+
+    @nounData = new DataFile(@path, 'noun')
+    @verbData = new DataFile(@path, 'verb')
+    @adjData = new DataFile(@path, 'adj')
+    @advData = new DataFile(@path, 'adv')
 
     @allFiles = [
       {index: @nounIndex, data: @nounData, pos: 'n'}
@@ -68,8 +92,16 @@ class WordNet
     ]
 
   get: (synsetOffset, pos, callback) ->
-    dataFile = @getDataFile(pos)
-    dataFile.get synsetOffset, callback
+    wordnet = @
+
+    if @cache
+      query = "get:#{synsetOffset}:#{pos}"
+      return callback(hit) if hit = wordnet.cache.get query
+
+    dataFile = wordnet.getDataFile(pos)
+    dataFile.get synsetOffset, (result) ->
+      wordnet.cache.set query, result if query
+      callback(result)
 
   getAsync: (synsetOffset, pos) ->
     wordnet = @
@@ -82,8 +114,14 @@ class WordNet
     [word, pos] = input.split('#')
     lword = word.toLowerCase().replace(/\s+/g, '_')
 
+    if @cache
+      query = "lookup:#{input}"
+      return callback(hit) if hit = wordnet.cache.get query
+
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
-    wordnet.lookupFromFiles selectedFiles, [], lword, callback
+    wordnet.lookupFromFiles selectedFiles, [], lword, (results) ->
+      wordnet.cache.set query, results if query
+      callback(results)
 
   lookupAsync: (input, callback) ->
     wordnet = @
@@ -95,6 +133,10 @@ class WordNet
     wordnet = @
     [word, pos, senseNumber] = input.split('#')
 
+    if @cache
+      query = "findSense:#{input}"
+      return callback(hit) if hit = wordnet.cache.get query
+
     sense = parseInt(senseNumber)
     if Number.isNaN(sense)
       throw new Error("Sense number should be an integer")
@@ -104,7 +146,9 @@ class WordNet
     lword = word.toLowerCase().replace(/\s+/g, '_')
     selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, (response) ->
-      callback(response[sense - 1])
+      result = response[sense - 1]
+      wordnet.cache.set query, result if query
+      callback(result)
 
   findSenseAsync: (input) ->
     wordnet = @
@@ -116,6 +160,10 @@ class WordNet
     wordnet = @
     [word, pos] = input.split('#')
 
+    if @cache
+      query = "querySense:#{input}"
+      return callback(hit) if hit = wordnet.cache.get query
+
     wordnet.lookup input, (results)  ->
       senseCounts = {}
       senses = for sense, i in results
@@ -124,6 +172,7 @@ class WordNet
         senseCounts[pos] ?= 1
         word + "#" + pos + "#" + senseCounts[pos]++
 
+      wordnet.cache.set query, senses if query
       callback(senses)
 
   querySenseAsync: (input) ->
@@ -389,7 +438,13 @@ class WordNet
 
 
   validForms: (string, callback) ->
-    _validFormsWithExceptions @, string, callback
+    if @cache
+      query = "validForms:#{string}"
+      return callback(hit) if hit = wordnet.cache.get query
+
+    _validFormsWithExceptions @, string, (result) ->
+      wordnet.cache.set query, result if query
+      callback(result)
 
   validFormsAsync: (string) ->
     new Promise (resolve, reject) =>

@@ -40,16 +40,31 @@ npm install wndb-with-exceptions --save
 API
 ---
 
-### new WordNet([directory])
+### new WordNet([options | string])
 
-The constructor returns a new object to access a WordNet database at the specified
-directory. If no directory is passed, the module uses `require` to locate 
-`wndb-with-exceptions`, so if you don't want to deploy your own WordNet, all you
-need to do is add `wndb-with-exceptions` as an application dependency and not 
-pass a directory to the constructor. 
+The constructor returns a new object to access a WordNet database. The passed 
+options configure the interface. The following options are available:
 
-The original WordNet data files can always be manually downloaded and installed
-anywhere from http://wordnet.princeton.edu/wordnet/download. 
+ *  __dataDir__ -- specifies the location of the Wordnet directory. 
+
+    If this option isn't passed, the module uses `require` to locate 
+    `wndb-with-exceptions`, so if you don't want to deploy your own WordNet, all you
+    need to do is add `wndb-with-exceptions` as an application dependency and not 
+    pass a directory to the constructor. 
+    The original WordNet data files can always be manually downloaded and installed
+    anywhere from http://wordnet.princeton.edu/wordnet/download. 
+
+    As a shortcut, if you pass a string directly to the constructor, it's interpreted
+    as a Wordnet directory, and all other options default in sensible ways. 
+
+ *  __cache__ -- adds an LRU cache to the Wordnet access.
+
+    If the option is false, no cache is set; and if it is true, then a cache (using
+    `lru-cache` with a default size of 2000 items) is set. In addition, the cache can be
+    an object. If that object has a `get` method then it's used as a cache directly, and 
+    if it doesn't, it's assumed to be a configuration object which will be used to 
+    configure a new `lru-cache`.
+
 
 ### lookup(word, callback)
 
