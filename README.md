@@ -57,6 +57,15 @@ options configure the interface. The following options are available:
     As a shortcut, if you pass a string directly to the constructor, it's interpreted
     as a Wordnet directory, and all other options default in sensible ways. 
 
+ *  __cache__ -- adds an LRU cache to the Wordnet access.
+
+    If the option is false, no cache is set; and if it is true, then a cache (using
+    `lru-cache` with a default size of 2000 items) is set. In addition, the cache can be
+    an object. If that object has a `get` method then it's used as a cache directly, and 
+    if it doesn't, it's assumed to be a configuration object which will be used to 
+    configure a new `lru-cache`.
+
+
 ### lookup(word, callback)
 
 Here's an example of looking up definitions for the word, "node".

@@ -26,13 +26,15 @@
 ## (5) - move to use wndb-with-exceptions instead of WNdb, to provide morphological exceptions
 ## (6) - significant improvements in testing
 
-IndexFile = require('./index_file')
-DataFile = require('./data_file')
+IndexFile = require './index_file'
+DataFile =  require './data_file'
 
-async = require('async')
-Promise = require('bluebird')
-path = require('path')
-fs = require('fs')
+async =     require 'async'
+Promise =   require 'bluebird'
+path =      require 'path'
+fs =        require 'fs'
+
+LRU =       require 'lru-cache'
 
 require('es6-shim')
 
@@ -46,6 +48,7 @@ class WordNet
     else
       options ?= {}
 
+
     if ! options.dataDir?
       try
         WNdb = require('wndb-with-exceptions')
@@ -53,6 +56,21 @@ class WordNet
         console.error("Please 'npm install wndb-with-exceptions' before using WordNet module or specify a dict directory.")
         throw e
       options.dataDir = WNdb.path
+
+
+    if ! options.cache
+      @cache = null
+    else
+      if options.cache == true
+        options.cache = {
+          max: 2000
+        }
+
+      if typeof options.cache == 'object' and typeof options.cache.get == 'function'
+        @cache = options.cache
+      else
+        @cache = LRU options.cache
+
 
     @path = options.dataDir
 
