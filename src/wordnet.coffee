@@ -160,6 +160,10 @@ class WordNet
     wordnet = @
     [word, pos] = input.split('#')
 
+    if @cache
+      query = "querySense:#{input}"
+      return callback(hit) if hit = wordnet.cache.get query
+
     wordnet.lookup input, (results)  ->
       senseCounts = {}
       senses = for sense, i in results
@@ -168,6 +172,7 @@ class WordNet
         senseCounts[pos] ?= 1
         word + "#" + pos + "#" + senseCounts[pos]++
 
+      wordnet.cache.set query, senses if query
       callback(senses)
 
   querySenseAsync: (input) ->
@@ -433,7 +438,13 @@ class WordNet
 
 
   validForms: (string, callback) ->
-    _validFormsWithExceptions @, string, callback
+    if @cache
+      query = "validForms:#{string}"
+      return callback(hit) if hit = wordnet.cache.get query
+
+    _validFormsWithExceptions @, string, (result) ->
+      wordnet.cache.set query, result if query
+      callback(result)
 
   validFormsAsync: (string) ->
     new Promise (resolve, reject) =>

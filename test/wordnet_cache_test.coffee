@@ -28,6 +28,7 @@ describe 'wordnet with cache enabled', () ->
           (results == results2).should.be.true
           done()
 
+
   describe 'lookup', () ->
     it 'should succeed for node', (done) ->
       wordnet.lookup 'node', (results) ->
@@ -43,6 +44,7 @@ describe 'wordnet with cache enabled', () ->
           (results == results2).should.be.true
           done()
 
+
   describe 'findSense', () ->
 
     it 'should succeed for lie#v#1', (done) ->
@@ -56,5 +58,37 @@ describe 'wordnet with cache enabled', () ->
       wordnet.findSense 'lie#v#1', (results) ->
         should.exist(results)
         wordnet.findSense 'lie#v#1', (results2) ->
+          (results == results2).should.be.true
+          done()
+
+
+  describe 'querySense', () ->
+    it 'should succeed for node', (done) ->
+      wordnet.querySense 'node', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(8)
+        done()
+
+    it 'should return the exact same value for a second query', (done) ->
+      wordnet.querySense 'node', (results) ->
+        should.exist(results)
+        wordnet.querySense 'node', (results2) ->
+          (results == results2).should.be.true
+          done()
+
+
+  describe 'validForms', () ->
+
+    it 'should succeed for axes#n', (done) ->
+      wordnet.validFormsAsync 'axes#n'
+        .should.eventually.exist
+        .should.eventually.eql(['ax#n', 'axis#n'])
+        .notify(done)
+
+    it 'should return the exact same value for a second query', (done) ->
+      wordnet.validFormsAsync 'axes#n'
+        should.exist(results)
+        wordnet.validFormsAsync 'axes#n'
           (results == results2).should.be.true
           done()
