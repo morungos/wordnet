@@ -27,6 +27,7 @@ get = (location, callback) ->
   buff = new Buffer(4096)
 
   @open (err, fd) ->
+    return callback(err, null) if err?
     WordNetFile.appendLineChar fd, location, 0, buff, (line) ->
       data = line.split('| ')
       tokens = data[0].split(/\s+/)
@@ -54,7 +55,7 @@ get = (location, callback) ->
       for element, k in examples
         examples[k] = examples[k].replace(/\"/g,'').replace(/\s\s+/g,'')
 
-      callback {
+      callback null, {
         synsetOffset: parseInt(tokens[0], 10)
         lexFilenum: parseInt(tokens[1], 10)
         pos: tokens[2]

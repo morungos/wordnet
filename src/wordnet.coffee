@@ -99,7 +99,7 @@ class WordNet
       return callback(hit) if hit = wordnet.cache.get query
 
     dataFile = wordnet.getDataFile(pos)
-    dataFile.get synsetOffset, (result) ->
+    dataFile.get synsetOffset, (err, result) ->
       wordnet.cache.set query, result if query
       callback(result)
 
@@ -203,7 +203,7 @@ class WordNet
     if offsets.length == 0
       callback(results)
     else
-      data.get offsets.pop(), (record) ->
+      data.get offsets.pop(), (err, record) ->
         results.push(record)
         wordnet.pushResults(data, results, offsets, callback)
 

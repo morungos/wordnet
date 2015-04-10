@@ -31,28 +31,25 @@ getFileSize = (path) ->
 findPrevEOL = (fd, pos, callback) ->
   buff = new Buffer(1024);
   if pos == 0
-    callback(0)
+    callback(null, 0)
   else
     fs.read fd, buff, 0, 1, pos, (err, count) ->
+      return callback(err, null) if err?
       if buff[0] == 10
-        callback(pos + 1)
+        callback(null, pos + 1)
       else
         findPrevEOL(fd, pos - 1, callback)
 
 
 readLine = (fd, pos, callback) ->
   buff = new Buffer(1024)
-  findPrevEOL fd, pos, (pos) ->
+  findPrevEOL fd, pos, (err, pos) ->
     WordNetFile.appendLineChar fd, pos, 0, buff, callback
-
-
-miss = (callback) -> 
-  callback({status: 'miss'})
 
 
 findAt = (fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
   if lastPos == pos || pos >= size
-    miss callback
+    callback {status: 'miss'}
   else
     readLine fd, pos, (line) ->
       tokens = line.split(/\s+/)
@@ -61,7 +58,7 @@ findAt = (fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
       if key == searchKey
         callback {status: 'hit', key: key, 'line': line, tokens: tokens}
       else if adjustment == 1 || key == lastKey
-        miss callback
+        callback {status: 'miss'}
       else
         adjustment = Math.ceil(adjustment * 0.5)
 
@@ -75,17 +72,15 @@ find = (searchKey, callback) ->
   indexFile = this
 
   indexFile.open (err, fd) ->
-    if err
-      console.log(err);
-    else
-      size = getFileSize(indexFile.filePath) - 1
-      pos = Math.ceil(size / 2)
-      findAt fd, size, pos, null, pos, searchKey, (result)->
-        callback(result)
+    return callback(err, null) if err?
+    size = getFileSize(indexFile.filePath) - 1
+    pos = Math.ceil(size / 2)
+    findAt fd, size, pos, null, pos, searchKey, (result)->
+      callback(null, result)
 
 
 lookupFromFile = (word, callback) ->
-  @find word, (record) ->
+  @find word, (err, record) ->
     indexRecord = null
 
     if record.status == 'hit'
