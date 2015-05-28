@@ -2,6 +2,12 @@ Release history
 ===============
 
 
+Version 0.1.9
+-------------
+
+ * Corrected an issue with underscores/spaces in terms - #10
+
+
 Version 0.1.8
 -------------
 
