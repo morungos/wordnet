@@ -65,6 +65,13 @@ describe 'wordnet', () ->
         results.should.have.length(5)
         done()
 
+    it 'should succeed for alte#r', (done) ->
+      wordnet.lookup 'alte#r', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(0)
+        done()
+
 
   describe 'lookupAsync', () ->
 
@@ -220,6 +227,20 @@ describe 'wordnet', () ->
       wordnet.validForms 'alter', (results) ->
         should.exist(results)
         results.should.eql(['alter#v'])
+        done()
+
+    ## Tests for #10
+    it 'should succeed for fought_', (done) ->
+      wordnet.validForms 'fought_', (results) ->
+        should.exist(results)
+        results.should.eql([])
+        done()
+
+    ## Tests for #10
+    it 'should succeed for red_squirrel', (done) ->
+      wordnet.validForms 'red_squirrel', (results) ->
+        should.exist(results)
+        results.should.eql(['red_squirrel#n'])
         done()
 
     it 'should succeed for a set of queries pushed asynchronously', (done) ->
