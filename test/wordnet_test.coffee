@@ -14,6 +14,10 @@ describe 'wordnet', () ->
     wordnet = new Wordnet()
     done()
 
+  afterEach (done) ->
+    wordnet.close()
+    done()
+
   describe 'get', () ->
     it 'should succeed', (done) ->
       wordnet.get 3827107, 'n', (results) ->
@@ -108,7 +112,7 @@ describe 'wordnet', () ->
         .should.eventually.exist
         .should.eventually.be.an.instanceOf(Array)
         .should.eventually.have.length(8)
-        done()
+        .notify(done)
 
     it 'should succeed for ghostly#a', (done) ->
       wordnet.querySenseAsync 'ghostly#a'
@@ -116,7 +120,7 @@ describe 'wordnet', () ->
         .should.eventually.be.an.instanceOf(Array)
         .should.eventually.have.length(1)
         .should.eventually.eql(['ghostly#a#1'])
-        done()
+        .notify(done)
 
 
   describe 'findSense', () ->
