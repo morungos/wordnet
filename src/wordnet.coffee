@@ -99,14 +99,15 @@ class WordNet
       return callback(hit) if hit = wordnet.cache.get query
 
     dataFile = wordnet.getDataFile(pos)
-    dataFile.get synsetOffset, (result) ->
+    dataFile.get synsetOffset, (err, result) ->
       wordnet.cache.set query, result if query
       callback(result)
 
   getAsync: (synsetOffset, pos) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.get synsetOffset, pos, (data) -> resolve(data)
+      wordnet.get synsetOffset, pos, (data) -> 
+        resolve(data)
 
 
   lookup: (input, callback) ->
@@ -189,7 +190,7 @@ class WordNet
     else
       file = files.pop()
 
-      file.index.lookup word, (record) ->
+      file.index.lookup word, (err, record) ->
         if record
           wordnet.pushResults file.data, results, record.synsetOffset, () ->
             wordnet.lookupFromFiles files, results, word, callback
@@ -203,7 +204,7 @@ class WordNet
     if offsets.length == 0
       callback(results)
     else
-      data.get offsets.pop(), (record) ->
+      data.get offsets.pop(), (err, record) ->
         results.push(record)
         wordnet.pushResults(data, results, offsets, callback)
 

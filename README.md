@@ -138,6 +138,14 @@ wordnet.querySense('axes#n', console.log);
 Similar to `querySense(query, callback)` but returning a promise.
 
 
+### close()
+
+Closes all the file handles being used by this instance. If new queries are
+done, the files may be silently re-opened, but that probably isn't a very good
+plan. It should be assumed that re-use of an instance after close is
+deprecated. 
+
+
 Future work
 -----------
 

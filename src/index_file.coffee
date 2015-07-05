@@ -23,107 +23,92 @@ fs = require('fs')
 util = require('util')
 
 
-getFileSize = (path) ->
-  stat = fs.statSync(path)
-  stat.size
+module.exports = class IndexFile extends WordNetFile
+
+  constructor: (dataDir, name) ->
+    super(dataDir, 'index.' + name)
 
 
-findPrevEOL = (fd, pos, callback) ->
-  buff = new Buffer(1024);
-  if pos == 0
-    callback(0)
-  else
-    fs.read fd, buff, 0, 1, pos, (err, count) ->
-      if buff[0] == 10
-        callback(pos + 1)
-      else
-        findPrevEOL(fd, pos - 1, callback)
-
-
-readLine = (fd, pos, callback) ->
-  buff = new Buffer(1024)
-  findPrevEOL fd, pos, (pos) ->
-    WordNetFile.appendLineChar fd, pos, 0, buff, callback
-
-
-miss = (callback) -> 
-  callback({status: 'miss'})
-
-
-findAt = (fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
-  if lastPos == pos || pos >= size
-    miss callback
-  else
-    readLine fd, pos, (line) ->
-      tokens = line.split(/\s+/)
-      key = tokens[0]
-
-      if key == searchKey
-        callback {status: 'hit', key: key, 'line': line, tokens: tokens}
-      else if adjustment == 1 || key == lastKey
-        miss callback
-      else
-        adjustment = Math.ceil(adjustment * 0.5)
-
-        if key < searchKey
-          findAt fd, size, pos + adjustment, pos, adjustment, searchKey, callback, key
-        else
-          findAt fd, size, pos - adjustment, pos, adjustment, searchKey, callback, key
-
-
-find = (searchKey, callback) ->
-  indexFile = this
-
-  indexFile.open (err, fd) ->
-    if err
-      console.log(err);
+  _findPrevEOL = (self, fd, pos, callback) ->
+    buff = new Buffer(1024);
+    if pos == 0
+      callback(null, 0)
     else
-      size = getFileSize(indexFile.filePath) - 1
+      fs.read fd, buff, 0, 1, pos, (err, count) ->
+        return callback(err, null) if err?
+        if buff[0] == 10
+          callback(null, pos + 1)
+        else
+          _findPrevEOL(self, fd, pos - 1, callback)
+
+
+  _readLine = (self, fd, pos, callback) ->
+    buff = new Buffer(1024)
+    _findPrevEOL self, fd, pos, (err, pos) ->
+      self.appendLineChar fd, pos, 0, buff, callback
+
+
+  _findAt = (self, fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
+    if lastPos == pos || pos >= size
+      callback {status: 'miss'}
+    else
+      _readLine self, fd, pos, (err, line) ->
+        tokens = line.split(/\s+/)
+        key = tokens[0]
+
+        if key == searchKey
+          callback {status: 'hit', key: key, 'line': line, tokens: tokens}
+        else if adjustment == 1 || key == lastKey
+          callback {status: 'miss'}
+        else
+          adjustment = Math.ceil(adjustment * 0.5)
+
+          if key < searchKey
+            _findAt self, fd, size, pos + adjustment, pos, adjustment, searchKey, callback, key
+          else
+            _findAt self, fd, size, pos - adjustment, pos, adjustment, searchKey, callback, key
+
+
+  _getFileSize = (path) ->
+    stat = fs.statSync(path)
+    stat.size
+
+
+  find: (searchKey, callback) ->
+    self = @
+    @open (err, fd) ->
+      return callback(err, null) if err?
+      size = _getFileSize(@filePath) - 1
       pos = Math.ceil(size / 2)
-      findAt fd, size, pos, null, pos, searchKey, (result)->
-        callback(result)
+      _findAt self, fd, size, pos, null, pos, searchKey, (result) ->
+        callback.call(self, null, result)
 
 
-lookupFromFile = (word, callback) ->
-  @find word, (record) ->
-    indexRecord = null
+  lookupFromFile: (word, callback) ->
+    @find word, (err, record) ->
+      indexRecord = null
 
-    if record.status == 'hit'
-      ptrs = []
-      offsets = []
+      if record.status == 'hit'
+        ptrs = []
+        offsets = []
 
-      for i in [0..parseInt(record.tokens[3]) - 1] by 1
-        ptrs.push(record.tokens[i])
+        for i in [0..parseInt(record.tokens[3]) - 1] by 1
+          ptrs.push(record.tokens[i])
 
-      for i in [0..parseInt(record.tokens[2]) - 1] by 1
-        offsets.push(parseInt(record.tokens[ptrs.length + 6 + i], 10))
+        for i in [0..parseInt(record.tokens[2]) - 1] by 1
+          offsets.push(parseInt(record.tokens[ptrs.length + 6 + i], 10))
 
-      indexRecord = {
-        lemma: record.tokens[0]
-        pos: record.tokens[1]
-        ptrSymbol: ptrs
-        senseCnt:  parseInt(record.tokens[ptrs.length + 4], 10)
-        tagsenseCnt:  parseInt(record.tokens[ptrs.length + 5], 10)
-        synsetOffset:  offsets
-      }
+        indexRecord = {
+          lemma: record.tokens[0]
+          pos: record.tokens[1]
+          ptrSymbol: ptrs
+          senseCnt:  parseInt(record.tokens[ptrs.length + 4], 10)
+          tagsenseCnt:  parseInt(record.tokens[ptrs.length + 5], 10)
+          synsetOffset:  offsets
+        }
 
-    callback(indexRecord)
-
-
-lookup = (word, callback) ->
-  @lookupFromFile(word, callback)
+      callback.call @, null, indexRecord
 
 
-IndexFile = (dataDir, name) ->
-  WordNetFile.call(this, dataDir, 'index.' + name)
-
-
-util.inherits(IndexFile, WordNetFile)
-
-IndexFile.prototype.lookupFromFile = lookupFromFile
-IndexFile.prototype.lookup = lookup
-IndexFile.prototype.find = find
-
-IndexFile.prototype._findAt = findAt
-
-module.exports = IndexFile
+  lookup: (word, callback) ->
+    @lookupFromFile(word, callback)
