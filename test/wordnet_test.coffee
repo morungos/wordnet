@@ -14,6 +14,10 @@ describe 'wordnet', () ->
     wordnet = new Wordnet()
     done()
 
+  afterEach (done) ->
+    wordnet.close()
+    done()
+
   describe 'get', () ->
     it 'should succeed', (done) ->
       wordnet.get 3827107, 'n', (results) ->
@@ -59,6 +63,13 @@ describe 'wordnet', () ->
         should.exist(results)
         results.should.be.an.instanceOf(Array)
         results.should.have.length(5)
+        done()
+
+    it 'should succeed for alte#r', (done) ->
+      wordnet.lookup 'alte#r', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(0)
         done()
 
 
@@ -108,7 +119,7 @@ describe 'wordnet', () ->
         .should.eventually.exist
         .should.eventually.be.an.instanceOf(Array)
         .should.eventually.have.length(8)
-        done()
+        .notify(done)
 
     it 'should succeed for ghostly#a', (done) ->
       wordnet.querySenseAsync 'ghostly#a'
@@ -116,7 +127,7 @@ describe 'wordnet', () ->
         .should.eventually.be.an.instanceOf(Array)
         .should.eventually.have.length(1)
         .should.eventually.eql(['ghostly#a#1'])
-        done()
+        .notify(done)
 
 
   describe 'findSense', () ->
@@ -216,6 +227,20 @@ describe 'wordnet', () ->
       wordnet.validForms 'alter', (results) ->
         should.exist(results)
         results.should.eql(['alter#v'])
+        done()
+
+    ## Tests for #10
+    it 'should succeed for fought_', (done) ->
+      wordnet.validForms 'fought_', (results) ->
+        should.exist(results)
+        results.should.eql([])
+        done()
+
+    ## Tests for #10
+    it 'should succeed for red_squirrel', (done) ->
+      wordnet.validForms 'red_squirrel', (results) ->
+        should.exist(results)
+        results.should.eql(['red_squirrel#n'])
         done()
 
     it 'should succeed for a set of queries pushed asynchronously', (done) ->

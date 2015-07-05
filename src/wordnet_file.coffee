@@ -23,50 +23,46 @@ path = require('path')
 util = require('util')
 
 
-appendLineChar = (fd, pos, buffPos, buff, callback) ->
-  length = buff.length
-  space = length - buffPos
-  fs.read fd, buff, buffPos, space, pos, (err, count, buffer) ->
-    if err
-      console.log(err)
-    else
-      for i in [0..count - 1]
-        if buff[i] == 10
-          return callback(buff.slice(0, i).toString('ASCII'))
+module.exports = class WordNetFile
 
-      ## Okay, no newline; extend and tail recurse
-      newBuff = new Buffer(length * 2)
-      buff.copy(newBuff, 0, 0, length)
-      appendLineChar fd, pos + length, length, newBuff, callback
+  constructor: (@dataDir, @fileName) ->
+    @filePath = path.join(@dataDir, @fileName)
 
+  open: (callback) ->
+    self = @
+    if @fd
+      return callback.call self, null, @fd
 
-close = () ->
-  fs.close(@fd)
-  delete @fd
+    filePath = @filePath
+
+    fs.open filePath, 'r', null, (err, fd) =>
+      if err
+        console.log('Unable to open %s', filePath, err)
+        return callback.call self, err, null
+      @fd = fd
+      callback.call self, err, fd
 
 
-open = (callback) ->
-  if @fd
-    return callback null, @fd
-
-  filePath = @filePath
-
-  fs.open filePath, 'r', null, (err, fd) =>
-    if err
-      console.log('Unable to open %s', filePath)
-      return
-    @fd = fd
-    callback err, fd, () -> undefined
+  close: () ->
+    if @fd?
+      fs.close(@fd)
+      delete @fd
 
 
-WordNetFile = (dataDir, fileName) ->
-  @dataDir = dataDir
-  @fileName = fileName
-  @filePath = require('path').join(@dataDir, @fileName)
+  appendLineChar: (fd, pos, buffPos, buff, callback) ->
+    self = @
+    length = buff.length
+    space = length - buffPos
+    fs.read fd, buff, buffPos, space, pos, (err, count, buffer) ->
+      if err
+        console.log self, fd, err
+        return callback.call(self, err, null)
+      else
+        for i in [0..count - 1]
+          if buff[i] == 10
+            return callback.call(self, null, buff.slice(0, i).toString('ASCII'))
 
-
-WordNetFile.prototype.open = open
-WordNetFile.appendLineChar = appendLineChar
-
-
-module.exports = WordNetFile
+        ## Okay, no newline; extend and tail recurse
+        newBuff = new Buffer(length * 2)
+        buff.copy(newBuff, 0, 0, length)
+        self.appendLineChar fd, pos + length, length, newBuff, callback

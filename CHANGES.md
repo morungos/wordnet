@@ -2,6 +2,20 @@ Release history
 ===============
 
 
+Version 0.1.10
+-------------
+
+ * Total rewrite of the object inheritance for files
+ * Added a working .close() method - #13
+ * Partial work on improving error handling - #8
+
+
+Version 0.1.9
+-------------
+
+ * Corrected an issue with underscores/spaces in terms - #10
+
+
 Version 0.1.8
 -------------
 

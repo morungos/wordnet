@@ -23,57 +23,56 @@ fs = require('fs')
 util = require('util')
 
 
-get = (location, callback) ->
-  buff = new Buffer(4096)
+module.exports = class DataFile extends WordNetFile
 
-  @open (err, fd) ->
-    return callback(err, null) if err?
-    WordNetFile.appendLineChar fd, location, 0, buff, (line) ->
-      data = line.split('| ')
-      tokens = data[0].split(/\s+/)
-      ptrs = []
-      wCnt = parseInt(tokens[3], 16)
-      synonyms = []
+  constructor: (dataDir, name) ->
+    super(dataDir, 'data.' + name)
 
-      for i in [0..wCnt - 1] by 1
-        synonyms.push(tokens[4 + i * 2]);
 
-      ptrOffset = (wCnt - 1) * 2 + 6
-      for i in [0..parseInt(tokens[ptrOffset], 10) - 1] by 1
-        ptrs.push {
-          pointerSymbol: tokens[ptrOffset + 1 + i * 4]
-          synsetOffset: parseInt(tokens[ptrOffset + 2 + i * 4], 10)
-          pos: tokens[ptrOffset + 3 + i * 4]
-          sourceTarget: tokens[ptrOffset + 4 + i * 4]
+  get: (location, callback) ->
+    self = @
+    buff = new Buffer(4096)
+
+    @open (err, fd) ->
+      return callback.call(self, err, null) if err?
+
+      @appendLineChar fd, location, 0, buff, (err, line) ->
+        data = line.split('| ')
+        tokens = data[0].split(/\s+/)
+        ptrs = []
+        wCnt = parseInt(tokens[3], 16)
+        synonyms = []
+
+        for i in [0..wCnt - 1] by 1
+          synonyms.push(tokens[4 + i * 2]);
+
+        ptrOffset = (wCnt - 1) * 2 + 6
+        for i in [0..parseInt(tokens[ptrOffset], 10) - 1] by 1
+          ptrs.push {
+            pointerSymbol: tokens[ptrOffset + 1 + i * 4]
+            synsetOffset: parseInt(tokens[ptrOffset + 2 + i * 4], 10)
+            pos: tokens[ptrOffset + 3 + i * 4]
+            sourceTarget: tokens[ptrOffset + 4 + i * 4]
+          }
+
+        ## break "gloss" into definition vs. examples
+        glossArray = data[1].split("; ")
+        definition = glossArray[0]
+        examples = glossArray.slice(1)
+
+        for element, k in examples
+          examples[k] = examples[k].replace(/\"/g,'').replace(/\s\s+/g,'')
+
+        callback.call self, null, {
+          synsetOffset: parseInt(tokens[0], 10)
+          lexFilenum: parseInt(tokens[1], 10)
+          pos: tokens[2]
+          wCnt: wCnt
+          lemma: tokens[4]
+          synonyms: synonyms
+          lexId: tokens[5]
+          ptrs: ptrs
+          gloss: data[1]
+          def: definition
+          exp: examples
         }
-
-      ## break "gloss" into definition vs. examples
-      glossArray = data[1].split("; ")
-      definition = glossArray[0]
-      examples = glossArray.slice(1)
-
-      for element, k in examples
-        examples[k] = examples[k].replace(/\"/g,'').replace(/\s\s+/g,'')
-
-      callback null, {
-        synsetOffset: parseInt(tokens[0], 10)
-        lexFilenum: parseInt(tokens[1], 10)
-        pos: tokens[2]
-        wCnt: wCnt
-        lemma: tokens[4]
-        synonyms: synonyms
-        lexId: tokens[5]
-        ptrs: ptrs
-        gloss: data[1]
-        def: definition
-        exp: examples
-      }
-
-
-DataFile = (dataDir, name) ->
-  WordNetFile.call(this, dataDir, 'data.' + name)
-
-util.inherits(DataFile, WordNetFile)
-DataFile.prototype.get = get
-
-module.exports = DataFile

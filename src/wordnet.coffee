@@ -106,7 +106,8 @@ class WordNet
   getAsync: (synsetOffset, pos) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.get synsetOffset, pos, (data) -> resolve(data)
+      wordnet.get synsetOffset, pos, (data) -> 
+        resolve(data)
 
 
   lookup: (input, callback) ->
@@ -189,7 +190,7 @@ class WordNet
     else
       file = files.pop()
 
-      file.index.lookup word, (record) ->
+      file.index.lookup word, (err, record) ->
         if record
           wordnet.pushResults file.data, results, record.synsetOffset, () ->
             wordnet.lookupFromFiles files, results, word, callback
@@ -366,30 +367,36 @@ class WordNet
 
     return [word].concat(exception) if exception
 
-    token = word.split(/[ _]/g)
+    tokens = word.split(/[ _]/g)
 
     ## If a single term, process using tokenDetach
-    if token.length == 1
-      return tokenDetach(token[0] + "#" + pos)
+    if tokens.length == 1
+      return tokenDetach(tokens[0] + "#" + pos)
 
     ## Otherwise, handle the forms recursively
     forms = tokens.map (token) -> _forms(wordnet, token, pos)
 
-    ## Now generate all possible token sequenc,es (collocations)
+    ## Now generate all possible token sequences (collocations)
     rtn = []
     index = (0 for token in tokens)
 
     while true
       colloc = forms[0][index[0]]
-      for token, i in tokens
+      for i in [1..(tokens.length - 1)]
         colloc = colloc + '_' + forms[i][index[i]]
       rtn.push colloc
 
-      for token, i in tokens
-        break if ++index[i] < forms[i].length
-        index[i] = 0
+      i = 0
+      while i < tokens.length
+        index[i] = index[i] + 1
+        if index[i] < forms[i].length
+          break
+        else
+          index[i] = 0
 
-      if i > tokens.length
+        i = i + 1
+
+      if i >= tokens.length
         break
 
     return rtn
