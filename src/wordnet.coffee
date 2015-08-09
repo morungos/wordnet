@@ -1,15 +1,15 @@
 ## Copyright (c) 2011, Chris Umbel
-## 
+##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
 ## in the Software without restriction, including without limitation the rights
 ## to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 ## copies of the Software, and to permit persons to whom the Software is
 ## furnished to do so, subject to the following conditions:
-## 
+##
 ## The above copyright notice and this permission notice shall be included in
 ## all copies or substantial portions of the Software.
-## 
+##
 ## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 ## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 ## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -96,18 +96,28 @@ class WordNet
 
     if @cache
       query = "get:#{synsetOffset}:#{pos}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback hit
+        else
+          return callback null, hit
 
     dataFile = wordnet.getDataFile(pos)
     dataFile.get synsetOffset, (err, result) ->
-      wordnet.cache.set query, result if query
-      callback(result)
+      wordnet.cache.set query, result if query && !err?
+      if callback.length == 1
+        callback result
+      else
+        callback err, result
 
   getAsync: (synsetOffset, pos) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.get synsetOffset, pos, (data) -> 
-        resolve(data)
+      wordnet.get synsetOffset, pos, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   lookup: (input, callback) ->
@@ -259,10 +269,10 @@ class WordNet
 
   ## Exceptions aren't part of the node.js source, but they are needed to map some of
   ## the exceptions in derivations. Really, these should be loaded in the constructor, but
-  ## sadly this code is asynchronous and we really don't want to force everything to 
+  ## sadly this code is asynchronous and we really don't want to force everything to
   ## block here. That's why a move to promises would be helpful, because all the dependent
   ## code is also going to be asynchronous and we can chain when we need to. For now, though,
-  ## we'll handle it with callbacks when needed. 
+  ## we'll handle it with callbacks when needed.
 
   exceptions = [
     {name: "noun.exc", pos: 'n'},
@@ -314,7 +324,7 @@ class WordNet
   ## Implementation of validForms. This isn't part of the original node.js Wordnet,
   ## and has instead been adapted from WordNet::QueryData. This helps to map words
   ## to WordNet by allowing different forms to be considered. Obviously, it's highly
-  ## specific to English. 
+  ## specific to English.
 
   unique = (a) ->
     found = {}
@@ -427,7 +437,7 @@ class WordNet
 
       possibleForms = forms(wordnet, word + "#" + pos)
 
-      filterFn = (term, done) -> 
+      filterFn = (term, done) ->
         wordnet.lookup term, (data) ->
           done(if data.length > 0 then true else false)
 
@@ -446,7 +456,7 @@ class WordNet
 
   validForms: (string, callback) ->
     wordnet = @
-    
+
     if @cache
       query = "validForms:#{string}"
       return callback(hit) if hit = wordnet.cache.get query
