@@ -158,7 +158,11 @@ class WordNet
 
     if @cache
       query = "findSense:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     sense = parseInt(senseNumber)
     if Number.isNaN(sense)
@@ -169,9 +173,13 @@ class WordNet
     lword = word.toLowerCase().replace(/\s+/g, '_')
     selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, (err, response) ->
+      return callback.call wordnet, err if err?
       result = response[sense - 1]
       wordnet.cache.set query, result if query
-      callback(result)
+      if callback.length == 1
+        callback.call wordnet, result
+      else
+        callback.call wordnet, null, result
 
   findSenseAsync: (input) ->
     wordnet = @
@@ -185,9 +193,14 @@ class WordNet
 
     if @cache
       query = "querySense:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
-    wordnet.lookup input, (results)  ->
+    wordnet.lookup input, (err, results)  ->
+      return callback.call wordnet, err if err?
       senseCounts = {}
       senses = for sense, i in results
         pos = sense.pos
@@ -196,7 +209,10 @@ class WordNet
         word + "#" + pos + "#" + senseCounts[pos]++
 
       wordnet.cache.set query, senses if query
-      callback(senses)
+      if callback.length == 1
+        callback.call wordnet, senses
+      else
+        callback.call wordnet, null, senses
 
   querySenseAsync: (input) ->
     wordnet = @

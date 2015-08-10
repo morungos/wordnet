@@ -131,6 +131,14 @@ describe 'wordnet', () ->
         results.should.have.length(8)
         done()
 
+    it 'should succeed for node with two-argument callback', (done) ->
+      wordnet.querySense 'node', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(8)
+        done()
+
     it 'should succeed for ghostly#a', (done) ->
       wordnet.querySense 'ghostly#a', (results) ->
         should.exist(results)
@@ -162,6 +170,14 @@ describe 'wordnet', () ->
     it 'should succeed for lie#v#1', (done) ->
       wordnet.findSense 'lie#v#1', (results) ->
         should.exist(results)
+        results.should.have.property('lemma', 'lie_down')
+        results.should.have.property('pos', 'v')
+        done()
+
+    it 'should succeed for lie#v#1 with a two-argument callback', (done) ->
+      wordnet.findSense 'lie#v#1', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
         results.should.have.property('lemma', 'lie_down')
         results.should.have.property('pos', 'v')
         done()
