@@ -63,6 +63,14 @@ describe 'wordnet', () ->
         results[0].should.have.property('synsetOffset', 3827107)
         done()
 
+    it 'should succeed for node with a two-argument callback', (done) ->
+      wordnet.lookup 'node', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.be.an.instanceOf(Array)
+        results[0].should.have.property('synsetOffset', 3827107)
+        done()
+
     it 'should succeed for lie#v', (done) ->
       wordnet.lookup 'lie#v', (results) ->
         should.exist(results)
