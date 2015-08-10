@@ -35,7 +35,7 @@ module.exports = class IndexFile extends WordNetFile
       callback(null, 0)
     else
       fs.read fd, buff, 0, 1, pos, (err, count) ->
-        return callback(err, null) if err?
+        return callback(err, count) if err?
         if buff[0] == 10
           callback(null, pos + 1)
         else
@@ -45,21 +45,24 @@ module.exports = class IndexFile extends WordNetFile
   _readLine = (self, fd, pos, callback) ->
     buff = new Buffer(1024)
     _findPrevEOL self, fd, pos, (err, pos) ->
+      return callback err, pos if err?
       self.appendLineChar fd, pos, 0, buff, callback
 
 
   _findAt = (self, fd, size, pos, lastPos, adjustment, searchKey, callback, lastKey) ->
     if lastPos == pos || pos >= size
-      callback {status: 'miss'}
+      callback null, {status: 'miss'}
     else
       _readLine self, fd, pos, (err, line) ->
+        return callback err if err?
+
         tokens = line.split(/\s+/)
         key = tokens[0]
 
         if key == searchKey
-          callback {status: 'hit', key: key, 'line': line, tokens: tokens}
+          callback null, {status: 'hit', key: key, 'line': line, tokens: tokens}
         else if adjustment == 1 || key == lastKey
-          callback {status: 'miss'}
+          callback null, {status: 'miss'}
         else
           adjustment = Math.ceil(adjustment * 0.5)
 
@@ -78,10 +81,11 @@ module.exports = class IndexFile extends WordNetFile
     self = @
     @open (err, fd) ->
       return callback(err, null) if err?
+      
       size = _getFileSize(@filePath) - 1
       pos = Math.ceil(size / 2)
-      _findAt self, fd, size, pos, null, pos, searchKey, (result) ->
-        callback.call(self, null, result)
+      _findAt self, fd, size, pos, null, pos, searchKey, (err, result) ->
+        callback.call(self, err, result)
 
 
   lookupFromFile: (word, callback) ->

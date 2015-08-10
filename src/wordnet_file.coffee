@@ -36,8 +36,8 @@ module.exports = class WordNetFile
     filePath = @filePath
 
     fs.open filePath, 'r', null, (err, fd) =>
-      if err
-        return callback.call self, err, null
+      return callback.call self, err, null if err?
+
       @fd = fd
       callback.call self, err, fd
 
@@ -53,14 +53,13 @@ module.exports = class WordNetFile
     length = buff.length
     space = length - buffPos
     fs.read fd, buff, buffPos, space, pos, (err, count, buffer) ->
-      if err
-        return callback.call(self, err, null)
-      else
-        for i in [0..count - 1]
-          if buff[i] == 10
-            return callback.call(self, null, buff.slice(0, i).toString('ASCII'))
+      return callback.call(self, err, null) if err?
 
-        ## Okay, no newline; extend and tail recurse
-        newBuff = new Buffer(length * 2)
-        buff.copy(newBuff, 0, 0, length)
-        self.appendLineChar fd, pos + length, length, newBuff, callback
+      for i in [0..count - 1]
+        if buff[i] == 10
+          return callback.call(self, null, buff.slice(0, i).toString('ASCII'))
+
+      ## Okay, no newline; extend and tail recurse
+      newBuff = new Buffer(length * 2)
+      buff.copy(newBuff, 0, 0, length)
+      self.appendLineChar fd, pos + length, length, newBuff, callback

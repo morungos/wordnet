@@ -34,9 +34,11 @@ module.exports = class DataFile extends WordNetFile
     buff = new Buffer(4096)
 
     @open (err, fd) ->
-      return callback.call(self, err, null) if err?
+      return callback.call self, err, null if err?
 
       @appendLineChar fd, location, 0, buff, (err, line) ->
+        return callback.call self, err, null if err?
+
         data = line.split('| ')
         tokens = data[0].split(/\s+/)
         ptrs = []
