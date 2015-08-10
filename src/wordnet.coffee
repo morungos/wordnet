@@ -452,24 +452,29 @@ class WordNet
     if ! pos
       ## No POS, so use a reduce to try them all and concatenate
       reducer = (previous, current, next) ->
-        _validForms wordnet, string + "#" + current, (value) ->
+        _validForms wordnet, string + "#" + current, (err, value) ->
           if value == undefined
             next(null, previous)
           else
             next(null, previous.concat(value))
 
       async.reduce ['n', 'v', 'a', 'r'], [], reducer, (err, result) ->
-       callback result
+        callback null, result
 
     else
 
       possibleForms = forms(wordnet, word + "#" + pos)
+      filteredResults = []
 
-      filterFn = (term, done) ->
-        wordnet.lookup term, (data) ->
-          done(if data.length > 0 then true else false)
+      eachFn = (term, done) ->
+        wordnet.lookup term, (err, data) ->
+          if err?
+            return done(err)
+          filteredResults.push term if data.length > 0
+          done()
 
-      async.filter possibleForms, filterFn, callback
+      async.each possibleForms, eachFn, (err) ->
+        callback err, filteredResults
 
 
   _validFormsWithExceptions = (wordnet, string, callback) ->
@@ -493,7 +498,7 @@ class WordNet
         else
           return callback.call wordnet, null, hit
 
-    _validFormsWithExceptions @, string, (result) ->
+    _validFormsWithExceptions @, string, (err, result) ->
       wordnet.cache.set query, result if query
       if callback.length == 1
         return callback.call wordnet, result
