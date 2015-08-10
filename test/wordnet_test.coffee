@@ -25,13 +25,32 @@ describe 'wordnet', () ->
         results.should.have.property('gloss', '(computer science) any computer that is hooked up to a computer network  ')
         done()
 
+    it 'should succeed with a two argument callback', (done) ->
+      wordnet.get 3827107, 'n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.have.property('gloss', '(computer science) any computer that is hooked up to a computer network  ')
+        done()
+
+    it 'should fail with an error in a two argument callback', (done) ->
+      wordnet.get 3827108, 'n', (err, results) ->
+        should.not.exist(results)
+        should.exist(err)
+        done()
 
   describe 'getAsync', () ->
     it 'should succeed', (done) ->
       wordnet
         .getAsync 3827107, 'n'
         .should.eventually.exist
+        .should.eventually.be.fulfilled
         .should.eventually.have.property('gloss', '(computer science) any computer that is hooked up to a computer network  ')
+        .notify(done)
+
+    it 'should fail with an error', (done) ->
+      wordnet
+        .getAsync 3827108, 'n'
+        .should.eventually.be.rejected
         .notify(done)
 
 
