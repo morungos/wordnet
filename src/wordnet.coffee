@@ -149,7 +149,7 @@ class WordNet
         if err?
           reject err
         else
-          resolve(data)
+          resolve data
 
 
   findSense: (input, callback) ->
@@ -184,7 +184,11 @@ class WordNet
   findSenseAsync: (input) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.findSense input, (data) -> resolve(data)
+      wordnet.findSense input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   querySense: (input, callback) ->
@@ -217,7 +221,11 @@ class WordNet
   querySenseAsync: (input) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.querySense input, (data) -> resolve(data)
+      wordnet.querySense input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   lookupFromFiles: (files, results, word, callback) ->
