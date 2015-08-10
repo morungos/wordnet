@@ -98,17 +98,17 @@ class WordNet
       query = "get:#{synsetOffset}:#{pos}"
       if hit = wordnet.cache.get query
         if callback.length == 1
-          return callback hit
+          return callback.call wordnet, hit
         else
-          return callback null, hit
+          return callback.call wordnet, null, hit
 
     dataFile = wordnet.getDataFile(pos)
     dataFile.get synsetOffset, (err, result) ->
       wordnet.cache.set query, result if query && !err?
       if callback.length == 1
-        callback result
+        callback.call wordnet, result
       else
-        callback err, result
+        callback.call wordnet, err, result
 
   getAsync: (synsetOffset, pos) ->
     wordnet = @
@@ -127,17 +127,29 @@ class WordNet
 
     if @cache
       query = "lookup:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
-    wordnet.lookupFromFiles selectedFiles, [], lword, (results) ->
+    wordnet.lookupFromFiles selectedFiles, [], lword, (err, results) ->
+      return callback.call wordnet, err if err?
       wordnet.cache.set query, results if query
-      callback(results)
+      if callback.length == 1
+        return callback.call wordnet, results
+      else
+        return callback.call wordnet, null, results
 
   lookupAsync: (input, callback) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.lookup input, (data) -> resolve(data)
+      wordnet.lookup input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   findSense: (input, callback) ->
@@ -146,7 +158,11 @@ class WordNet
 
     if @cache
       query = "findSense:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     sense = parseInt(senseNumber)
     if Number.isNaN(sense)
@@ -156,15 +172,23 @@ class WordNet
 
     lword = word.toLowerCase().replace(/\s+/g, '_')
     selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
-    wordnet.lookupFromFiles selectedFiles, [], lword, (response) ->
+    wordnet.lookupFromFiles selectedFiles, [], lword, (err, response) ->
+      return callback.call wordnet, err if err?
       result = response[sense - 1]
       wordnet.cache.set query, result if query
-      callback(result)
+      if callback.length == 1
+        callback.call wordnet, result
+      else
+        callback.call wordnet, null, result
 
   findSenseAsync: (input) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.findSense input, (data) -> resolve(data)
+      wordnet.findSense input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   querySense: (input, callback) ->
@@ -173,9 +197,14 @@ class WordNet
 
     if @cache
       query = "querySense:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
-    wordnet.lookup input, (results)  ->
+    wordnet.lookup input, (err, results)  ->
+      return callback.call wordnet, err if err?
       senseCounts = {}
       senses = for sense, i in results
         pos = sense.pos
@@ -184,19 +213,26 @@ class WordNet
         word + "#" + pos + "#" + senseCounts[pos]++
 
       wordnet.cache.set query, senses if query
-      callback(senses)
+      if callback.length == 1
+        callback.call wordnet, senses
+      else
+        callback.call wordnet, null, senses
 
   querySenseAsync: (input) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.querySense input, (data) -> resolve(data)
+      wordnet.querySense input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   lookupFromFiles: (files, results, word, callback) ->
     wordnet = @
 
     if files.length == 0
-      callback(results)
+      callback.call wordnet, null, results
     else
       file = files.pop()
 
@@ -424,24 +460,29 @@ class WordNet
     if ! pos
       ## No POS, so use a reduce to try them all and concatenate
       reducer = (previous, current, next) ->
-        _validForms wordnet, string + "#" + current, (value) ->
+        _validForms wordnet, string + "#" + current, (err, value) ->
           if value == undefined
             next(null, previous)
           else
             next(null, previous.concat(value))
 
       async.reduce ['n', 'v', 'a', 'r'], [], reducer, (err, result) ->
-       callback result
+        callback null, result
 
     else
 
       possibleForms = forms(wordnet, word + "#" + pos)
+      filteredResults = []
 
-      filterFn = (term, done) ->
-        wordnet.lookup term, (data) ->
-          done(if data.length > 0 then true else false)
+      eachFn = (term, done) ->
+        wordnet.lookup term, (err, data) ->
+          if err?
+            return done(err)
+          filteredResults.push term if data.length > 0
+          done()
 
-      async.filter possibleForms, filterFn, callback
+      async.each possibleForms, eachFn, (err) ->
+        callback err, filteredResults
 
 
   _validFormsWithExceptions = (wordnet, string, callback) ->
@@ -459,15 +500,26 @@ class WordNet
 
     if @cache
       query = "validForms:#{string}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
-    _validFormsWithExceptions @, string, (result) ->
+    _validFormsWithExceptions @, string, (err, result) ->
       wordnet.cache.set query, result if query
-      callback(result)
+      if callback.length == 1
+        return callback.call wordnet, result
+      else
+        return callback.call wordnet, null, result
 
   validFormsAsync: (string) ->
     new Promise (resolve, reject) =>
-      @validForms string, (data) -> resolve(data)
+      @validForms string, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
 module.exports = WordNet
