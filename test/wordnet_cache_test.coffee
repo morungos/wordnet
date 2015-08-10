@@ -20,12 +20,28 @@ describe 'wordnet with cache enabled', () ->
         should.exist(results)
         results.should.have.property('gloss', '(computer science) any computer that is hooked up to a computer network  ')
         done()
-        
+
+    it 'should succeed with a two-argument callback', (done) ->
+      wordnet.get 3827107, 'n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.have.property('gloss', '(computer science) any computer that is hooked up to a computer network  ')
+        done()
+
     it 'should return the exact same value for a second query', (done) ->
       wordnet.get 3827107, 'n', (results) ->
         should.exist(results)
         wordnet.get 3827107, 'n', (results2) ->
           (results == results2).should.be.true
+          done()
+
+    it 'should return the exact same value for a second query and a two-argument callback', (done) ->
+      wordnet.get 3827107, 'n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        wordnet.get 3827107, 'n', (err, results2) ->
+          (results == results2).should.be.true
+          should.not.exist(err)
           done()
 
 
@@ -37,11 +53,28 @@ describe 'wordnet with cache enabled', () ->
         results[0].should.have.property('synsetOffset', 3827107)
         done()
 
+    it 'should succeed for node with a two-argument callback', (done) ->
+      wordnet.lookup 'node', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.be.an.instanceOf(Array)
+        results[0].should.have.property('synsetOffset', 3827107)
+        done()
+
     it 'should return the exact same value for a second query', (done) ->
       wordnet.lookup 'node', (results) ->
         should.exist(results)
         wordnet.lookup 'node', (results2) ->
           (results == results2).should.be.true
+          done()
+
+    it 'should return the exact same value for a second query and a two-argument callback', (done) ->
+      wordnet.lookup 'node', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        wordnet.lookup 'node', (err, results2) ->
+          (results == results2).should.be.true
+          should.not.exist(err)
           done()
 
 
@@ -54,10 +87,20 @@ describe 'wordnet with cache enabled', () ->
         results.should.have.property('pos', 'v')
         done()
 
-    it 'should return the exact same value for a second query', (done) ->
-      wordnet.findSense 'lie#v#1', (results) ->
+    it 'should succeed for lie#v#1 with a two-argument callback', (done) ->
+      wordnet.findSense 'lie#v#1', (err, results) ->
         should.exist(results)
-        wordnet.findSense 'lie#v#1', (results2) ->
+        should.not.exist(err)
+        results.should.have.property('lemma', 'lie_down')
+        results.should.have.property('pos', 'v')
+        done()
+
+    it 'should return the exact same value for a second query and a two-argument callback', (done) ->
+      wordnet.findSense 'lie#v#1', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        wordnet.findSense 'lie#v#1', (err, results2) ->
+          should.not.exist(err)
           (results == results2).should.be.true
           done()
 
@@ -86,9 +129,25 @@ describe 'wordnet with cache enabled', () ->
         results.should.eql(['ax#n', 'axis#n'])
         done()
 
+    it 'should succeed for axes#n with a two-argument callback', (done) ->
+      wordnet.validForms 'axes#n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.eql(['ax#n', 'axis#n'])
+        done()
+
     it 'should return the exact same value for a second query', (done) ->
       wordnet.validForms 'axes#n', (results) ->
         should.exist(results)
         wordnet.validForms 'axes#n', (results2) ->
           (results == results2).should.be.true
+          done()
+
+    it 'should return the exact same value for a second query and a two-argument callback', (done) ->
+      wordnet.validForms 'axes#n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        wordnet.validForms 'axes#n', (err, results2) ->
+          (results == results2).should.be.true
+          should.not.exist(err)
           done()

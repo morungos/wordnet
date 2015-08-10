@@ -1,15 +1,15 @@
 ## Copyright (c) 2011, Chris Umbel
-## 
+##
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
 ## in the Software without restriction, including without limitation the rights
 ## to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 ## copies of the Software, and to permit persons to whom the Software is
 ## furnished to do so, subject to the following conditions:
-## 
+##
 ## The above copyright notice and this permission notice shall be included in
 ## all copies or substantial portions of the Software.
-## 
+##
 ## THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 ## IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 ## FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -96,18 +96,28 @@ class WordNet
 
     if @cache
       query = "get:#{synsetOffset}:#{pos}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     dataFile = wordnet.getDataFile(pos)
     dataFile.get synsetOffset, (err, result) ->
-      wordnet.cache.set query, result if query
-      callback(result)
+      wordnet.cache.set query, result if query && !err?
+      if callback.length == 1
+        callback.call wordnet, result
+      else
+        callback.call wordnet, err, result
 
   getAsync: (synsetOffset, pos) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.get synsetOffset, pos, (data) -> 
-        resolve(data)
+      wordnet.get synsetOffset, pos, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   lookup: (input, callback) ->
@@ -117,17 +127,29 @@ class WordNet
 
     if @cache
       query = "lookup:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
-    wordnet.lookupFromFiles selectedFiles, [], lword, (results) ->
+    wordnet.lookupFromFiles selectedFiles, [], lword, (err, results) ->
+      return callback.call wordnet, err if err?
       wordnet.cache.set query, results if query
-      callback(results)
+      if callback.length == 1
+        return callback.call wordnet, results
+      else
+        return callback.call wordnet, null, results
 
   lookupAsync: (input, callback) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.lookup input, (data) -> resolve(data)
+      wordnet.lookup input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   findSense: (input, callback) ->
@@ -136,7 +158,11 @@ class WordNet
 
     if @cache
       query = "findSense:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     sense = parseInt(senseNumber)
     if Number.isNaN(sense)
@@ -146,15 +172,23 @@ class WordNet
 
     lword = word.toLowerCase().replace(/\s+/g, '_')
     selectedFiles = wordnet.allFiles.filter (file) -> file.pos == pos
-    wordnet.lookupFromFiles selectedFiles, [], lword, (response) ->
+    wordnet.lookupFromFiles selectedFiles, [], lword, (err, response) ->
+      return callback.call wordnet, err if err?
       result = response[sense - 1]
       wordnet.cache.set query, result if query
-      callback(result)
+      if callback.length == 1
+        callback.call wordnet, result
+      else
+        callback.call wordnet, null, result
 
   findSenseAsync: (input) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.findSense input, (data) -> resolve(data)
+      wordnet.findSense input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   querySense: (input, callback) ->
@@ -163,9 +197,14 @@ class WordNet
 
     if @cache
       query = "querySense:#{input}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
-    wordnet.lookup input, (results)  ->
+    wordnet.lookup input, (err, results)  ->
+      return callback.call wordnet, err if err?
       senseCounts = {}
       senses = for sense, i in results
         pos = sense.pos
@@ -174,19 +213,26 @@ class WordNet
         word + "#" + pos + "#" + senseCounts[pos]++
 
       wordnet.cache.set query, senses if query
-      callback(senses)
+      if callback.length == 1
+        callback.call wordnet, senses
+      else
+        callback.call wordnet, null, senses
 
   querySenseAsync: (input) ->
     wordnet = @
     new Promise (resolve, reject) ->
-      wordnet.querySense input, (data) -> resolve(data)
+      wordnet.querySense input, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
   lookupFromFiles: (files, results, word, callback) ->
     wordnet = @
 
     if files.length == 0
-      callback(results)
+      callback.call wordnet, null, results
     else
       file = files.pop()
 
@@ -259,10 +305,10 @@ class WordNet
 
   ## Exceptions aren't part of the node.js source, but they are needed to map some of
   ## the exceptions in derivations. Really, these should be loaded in the constructor, but
-  ## sadly this code is asynchronous and we really don't want to force everything to 
+  ## sadly this code is asynchronous and we really don't want to force everything to
   ## block here. That's why a move to promises would be helpful, because all the dependent
   ## code is also going to be asynchronous and we can chain when we need to. For now, though,
-  ## we'll handle it with callbacks when needed. 
+  ## we'll handle it with callbacks when needed.
 
   exceptions = [
     {name: "noun.exc", pos: 'n'},
@@ -314,7 +360,7 @@ class WordNet
   ## Implementation of validForms. This isn't part of the original node.js Wordnet,
   ## and has instead been adapted from WordNet::QueryData. This helps to map words
   ## to WordNet by allowing different forms to be considered. Obviously, it's highly
-  ## specific to English. 
+  ## specific to English.
 
   unique = (a) ->
     found = {}
@@ -414,24 +460,29 @@ class WordNet
     if ! pos
       ## No POS, so use a reduce to try them all and concatenate
       reducer = (previous, current, next) ->
-        _validForms wordnet, string + "#" + current, (value) ->
+        _validForms wordnet, string + "#" + current, (err, value) ->
           if value == undefined
             next(null, previous)
           else
             next(null, previous.concat(value))
 
       async.reduce ['n', 'v', 'a', 'r'], [], reducer, (err, result) ->
-       callback result
+        callback null, result
 
     else
 
       possibleForms = forms(wordnet, word + "#" + pos)
+      filteredResults = []
 
-      filterFn = (term, done) -> 
-        wordnet.lookup term, (data) ->
-          done(if data.length > 0 then true else false)
+      eachFn = (term, done) ->
+        wordnet.lookup term, (err, data) ->
+          if err?
+            return done(err)
+          filteredResults.push term if data.length > 0
+          done()
 
-      async.filter possibleForms, filterFn, callback
+      async.each possibleForms, eachFn, (err) ->
+        callback err, filteredResults
 
 
   _validFormsWithExceptions = (wordnet, string, callback) ->
@@ -446,18 +497,29 @@ class WordNet
 
   validForms: (string, callback) ->
     wordnet = @
-    
+
     if @cache
       query = "validForms:#{string}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
-    _validFormsWithExceptions @, string, (result) ->
+    _validFormsWithExceptions @, string, (err, result) ->
       wordnet.cache.set query, result if query
-      callback(result)
+      if callback.length == 1
+        return callback.call wordnet, result
+      else
+        return callback.call wordnet, null, result
 
   validFormsAsync: (string) ->
     new Promise (resolve, reject) =>
-      @validForms string, (data) -> resolve(data)
+      @validForms string, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
 module.exports = WordNet

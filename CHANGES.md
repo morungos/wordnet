@@ -2,8 +2,15 @@ Release history
 ===============
 
 
+Version 0.1.11
+--------------
+
+ * Added support for an error flag in the callbacks for all endpoints,
+ * Promisified endpoints will reject on error
+
+
 Version 0.1.10
--------------
+--------------
 
  * Total rewrite of the object inheritance for files
  * Added a working .close() method - #13
