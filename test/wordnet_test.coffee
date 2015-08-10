@@ -195,10 +195,17 @@ describe 'wordnet', () ->
   describe 'validForms', () ->
 
     it 'should succeed for axes#n', (done) ->
-      wordnet.validFormsAsync 'axes#n'
-        .should.eventually.exist
-        .should.eventually.eql(['ax#n', 'axis#n'])
-        .notify(done)
+      wordnet.validForms 'axes#n', (results) ->
+        should.exist(results)
+        results.should.eql(['ax#n', 'axis#n'])
+        done()
+
+    it 'should succeed for axes#n with a two-argument callback', (done) ->
+      wordnet.validForms 'axes#n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.eql(['ax#n', 'axis#n'])
+        done()
 
     it 'should succeed for dissatisfied#v', (done) ->
       wordnet.validForms 'dissatisfied#v', (results) ->

@@ -129,9 +129,25 @@ describe 'wordnet with cache enabled', () ->
         results.should.eql(['ax#n', 'axis#n'])
         done()
 
+    it 'should succeed for axes#n with a two-argument callback', (done) ->
+      wordnet.validForms 'axes#n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.eql(['ax#n', 'axis#n'])
+        done()
+
     it 'should return the exact same value for a second query', (done) ->
       wordnet.validForms 'axes#n', (results) ->
         should.exist(results)
         wordnet.validForms 'axes#n', (results2) ->
           (results == results2).should.be.true
+          done()
+
+    it 'should return the exact same value for a second query and a two-argument callback', (done) ->
+      wordnet.validForms 'axes#n', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        wordnet.validForms 'axes#n', (err, results2) ->
+          (results == results2).should.be.true
+          should.not.exist(err)
           done()

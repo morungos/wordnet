@@ -487,15 +487,26 @@ class WordNet
 
     if @cache
       query = "validForms:#{string}"
-      return callback(hit) if hit = wordnet.cache.get query
+      if hit = wordnet.cache.get query
+        if callback.length == 1
+          return callback.call wordnet, hit
+        else
+          return callback.call wordnet, null, hit
 
     _validFormsWithExceptions @, string, (result) ->
       wordnet.cache.set query, result if query
-      callback(result)
+      if callback.length == 1
+        return callback.call wordnet, result
+      else
+        return callback.call wordnet, null, result
 
   validFormsAsync: (string) ->
     new Promise (resolve, reject) =>
-      @validForms string, (data) -> resolve(data)
+      @validForms string, (err, data) ->
+        if err?
+          reject err
+        else
+          resolve data
 
 
 module.exports = WordNet
