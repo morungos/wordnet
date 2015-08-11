@@ -1,7 +1,7 @@
-NanoTimer = require('nanotimer')
+microtime = require('microtime')
 async = require('async')
 
-Wordnet = require('../lib/wordnet')
+Wordnet = require('../src/wordnet')
 wordnet = new Wordnet()
 
 testText = """
@@ -338,11 +338,9 @@ matcher = /\w+/g
 while match = matcher.exec(string)
   tokens.push match[0]
 
-timer = new NanoTimer()
-
 testTokens = (tokens, callback) ->
   lookup = (token, done) ->
-    wordnet.lookup token, (err, result) -> done(err)
+    wordnet.lookup token, (result) -> done()
   async.each tokens, lookup, callback
 
 testFunction = (tokens, callback) ->
@@ -352,6 +350,14 @@ testFunction = (tokens, callback) ->
   async.each [1..1000], itemFn, () ->
     callback()
 
-console.log "Starting run"
-timer.time testFunction, [tokens], 'u', (time) ->
-  console.log("It took " + time + " microseconds to process #{tokens.length} tokens #{count} times")
+time = (fn) ->
+  startTime = microtime.now()
+  end = () ->
+    endTime = microtime.now()
+    elapsed = endTime - startTime
+    console.log "It took " + elapsed + " microseconds to process #{tokens.length} tokens #{count} times"
+
+  fn(end)
+
+time (callback) ->
+  testFunction tokens, callback
