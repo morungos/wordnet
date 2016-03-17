@@ -146,6 +146,22 @@ wordnet.querySense('axes#n', console.log);
 Similar to `querySense(query, callback)` but returning a promise.
 
 
+### findSense(query, callback)
+
+Queries WordNet to find full information on a single sense of a term. The callback
+can accept one or two arguments, if two, the first is an error flag and the second
+the results.
+
+```javascript
+var wordnet = new WordNet()
+wordnet.findSense('lie#v#1', console.log);
+```
+
+### findSenseAsync(query)
+
+Similar to `findSense(query, callback)` but returning a promise.
+
+
 ### close()
 
 Closes all the file handles being used by this instance. If new queries are

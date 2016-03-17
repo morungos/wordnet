@@ -50,11 +50,12 @@ module.exports = class DataFile extends WordNetFile
 
         ptrOffset = (wCnt - 1) * 2 + 6
         for i in [0..parseInt(tokens[ptrOffset], 10) - 1] by 1
+          base = i * 4 + ptrOffset
           ptrs.push {
-            pointerSymbol: tokens[ptrOffset + 1 + i * 4]
-            synsetOffset: parseInt(tokens[ptrOffset + 2 + i * 4], 10)
-            pos: tokens[ptrOffset + 3 + i * 4]
-            sourceTarget: tokens[ptrOffset + 4 + i * 4]
+            pointerSymbol: tokens[base + 1]
+            synsetOffset: parseInt(tokens[base + 2], 10)
+            pos: tokens[base + 3]
+            sourceTarget: tokens[base + 4]
           }
 
         ## break "gloss" into definition vs. examples

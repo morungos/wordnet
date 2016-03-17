@@ -95,6 +95,13 @@ describe 'wordnet with cache enabled', () ->
         results.should.have.property('pos', 'v')
         done()
 
+    it 'should return the exact same value for a second query', (done) ->
+      wordnet.findSense 'lie#v#1', (results) ->
+        should.exist(results)
+        wordnet.findSense 'lie#v#1', (results2) ->
+          (results == results2).should.be.true
+          done()
+
     it 'should return the exact same value for a second query and a two-argument callback', (done) ->
       wordnet.findSense 'lie#v#1', (err, results) ->
         should.exist(results)
@@ -113,11 +120,28 @@ describe 'wordnet with cache enabled', () ->
         results.should.have.length(8)
         done()
 
+    it 'should succeed for node with a two-argument callback', (done) ->
+      wordnet.querySense 'node', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(8)
+        done()
+
     it 'should return the exact same value for a second query', (done) ->
       wordnet.querySense 'node', (results) ->
         should.exist(results)
         wordnet.querySense 'node', (results2) ->
           (results == results2).should.be.true
+          done()
+
+    it 'should return the exact same value for a second query and a two-argument callback', (done) ->
+      wordnet.querySense 'node', (err, results) ->
+        should.exist(results)
+        should.not.exist(err)
+        wordnet.querySense 'node', (err, results2) ->
+          (results == results2).should.be.true
+          should.not.exist(err)
           done()
 
 
