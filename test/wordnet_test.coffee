@@ -113,7 +113,7 @@ describe 'wordnet', () ->
         done()
 
     it 'should succeed for alter#v', (done) ->
-      wordnet.lookup 'alter\dv', (results) ->
+      wordnet.lookup 'alter#v', (results) ->
         should.exist(results)
         results.should.be.an.instanceOf(Array)
         results.should.have.length(5)
