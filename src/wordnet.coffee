@@ -133,7 +133,7 @@ class WordNet
         else
           return callback.call wordnet, null, hit
 
-    selectedFiles = if ! pos then wordnet.allFiles else wordnet.allFiles.filter (file) -> file.pos == pos
+    selectedFiles = if ! pos then wordnet.allFiles.slice() else wordnet.allFiles.filter (file) -> file.pos == pos
     wordnet.lookupFromFiles selectedFiles, [], lword, (err, results) ->
       return callback.call wordnet, err if err?
       wordnet.cache.set query, results if query

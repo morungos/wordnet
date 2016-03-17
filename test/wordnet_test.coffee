@@ -60,6 +60,33 @@ describe 'wordnet', () ->
       wordnet.lookup 'node', (results) ->
         should.exist(results)
         results.should.be.an.instanceOf(Array)
+        results.should.have.length(8)
+        results[0].should.have.property('synsetOffset', 3827107)
+        done()
+
+    it 'should succeed for test', (done) ->
+      wordnet.lookup 'test', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(13)
+        done()
+
+    ## Test for #16
+    it 'should succeed for nested callbacks', (done) ->
+      wordnet.lookup 'node', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
+        results.should.have.length(8)
+        wordnet.lookup 'test', (results) ->
+          should.exist(results)
+          results.should.be.an.instanceOf(Array)
+          results.should.have.length(13)
+          done()
+
+    it 'should succeed for node', (done) ->
+      wordnet.lookup 'node', (results) ->
+        should.exist(results)
+        results.should.be.an.instanceOf(Array)
         results[0].should.have.property('synsetOffset', 3827107)
         done()
 
@@ -86,7 +113,7 @@ describe 'wordnet', () ->
         done()
 
     it 'should succeed for alter#v', (done) ->
-      wordnet.lookup 'alter#v', (results) ->
+      wordnet.lookup 'alter\dv', (results) ->
         should.exist(results)
         results.should.be.an.instanceOf(Array)
         results.should.have.length(5)
