@@ -1,6 +1,6 @@
 {
   "name": "node-wordnet",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "Node.js interface for Wordnet",
   "main": "lib/wordnet.js",
   "scripts": {
