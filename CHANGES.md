@@ -2,10 +2,16 @@ Release history
 ===============
 
 
+Version 0.1.12
+--------------
+
+ * Fixed an issue with data structures being incorrectly modified - #16
+
+
 Version 0.1.11
 --------------
 
- * Added support for an error flag in the callbacks for all endpoints,
+ * Added support for an error flag in the callbacks for all endpoints
  * Promisified endpoints will reject on error
 
 
