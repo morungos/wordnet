@@ -29,17 +29,14 @@ describe('IndexFile', () => {
   it('should find a matching index record', () => {
     const file = new IndexFile(WNdb.path, 'noun');
     return file.open()
-      .then(() => new Promise((resolve, reject) => {
-        file.find("witch", (err, data) => {
-          expect(err).not.toBeTruthy();
-          expect(data).toHaveProperty('status', 'hit');
-          expect(data).toHaveProperty('key', 'witch');
-          expect(data).toHaveProperty('tokens', 
-            ['witch','n','4','4','@','~','#m','+','4','2','10055297','09503282','10780105','10155485','']
-          );
-          resolve();
-        })
-      }))
+      .then(() => file.find("witch"))
+      .then((data) => {
+        expect(data).toHaveProperty('status', 'hit');
+        expect(data).toHaveProperty('key', 'witch');
+        expect(data).toHaveProperty('tokens', 
+          ['witch','n','4','4','@','~','#m','+','4','2','10055297','09503282','10780105','10155485','']
+        );
+      })
       .finally(() => file.close());
   });
 
