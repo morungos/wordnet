@@ -4,7 +4,8 @@
   "description": "Node.js interface for Wordnet",
   "main": "lib/wordnet.js",
   "scripts": {
-    "test": "node_modules/.bin/gulp test"
+    "test": "mocha --compilers coffee:coffee-script/register test/*.coffee",
+    "build": "coffee --bare --output lib --compile src/*.coffee"
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
     "gulp": "^3.8.10",
     "gulp-coffee": "^2.2.0",
     "gulp-mocha": "^2.0.0",
+    "microtime": "^3.0.0",
     "mocha": "^2.2.5",
     "wndb-with-exceptions": "^3.0.1"
   },

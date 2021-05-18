@@ -1,10 +1,16 @@
-microtime = require('microtime')
-async = require('async')
+/*
+ * decaffeinate suggestions:
+ * DS102: Remove unnecessary code created because of implicit returns
+ * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
+ */
+let match;
+const microtime = require('microtime');
+const async = require('async');
 
-Wordnet = require('../src/wordnet')
-wordnet = new Wordnet()
+const Wordnet = require('../lib/wordnet');
+const wordnet = new Wordnet();
 
-testText = """
+const testText = `\
 Emma Woodhouse, handsome, clever, and rich, with a comfortable home
 and happy disposition, seemed to unite some of the best blessings of
 existence; and had lived nearly twenty-one years in the world with very
@@ -326,38 +332,51 @@ meet him."
 laughing, "and I agree with you entirely, that it will be a much better
 thing. Invite him to dinner, Emma, and help him to the best of the fish
 and the chicken, but leave him to chuse his own wife. Depend upon it, a
-man of six or seven-and-twenty can take care of himself."
-"""
+man of six or seven-and-twenty can take care of himself."\
+`;
 
-string = testText
-string = string.replace /\n/, ' '
-tokens = []
-count = 0
+let string = testText;
+string = string.replace(/\n/, ' ');
+const tokens = [];
+let count = 0;
 
-matcher = /\w+/g
-while match = matcher.exec(string)
-  tokens.push match[0]
+const matcher = /\w+/g;
+while ((match = matcher.exec(string))) {
+  tokens.push(match[0]);
+}
 
-testTokens = (tokens, callback) ->
-  lookup = (token, done) ->
-    wordnet.lookup token, (result) -> done()
-  async.each tokens, lookup, callback
+const testTokens = function(tokens, callback) {
+  const lookup = (token, done) => wordnet.lookup(token, result => done());
+  return async.each(tokens, lookup, callback);
+};
 
-testFunction = (tokens, callback) ->
-  itemFn = (item, done) ->
-    count = count + 1
-    testTokens tokens.slice(), done
-  async.each [1..1000], itemFn, () ->
-    callback()
+const testFunction = function(tokens, callback) {
+  const itemFn = function(item, done) {
+    count = count + 1;
+    return testTokens(tokens.slice(), done);
+  };
+  return async.each(__range__(1, 10, true), itemFn, () => callback());
+};
 
-time = (fn) ->
-  startTime = microtime.now()
-  end = () ->
-    endTime = microtime.now()
-    elapsed = endTime - startTime
-    console.log "It took " + elapsed + " microseconds to process #{tokens.length} tokens #{count} times"
+const time = function(fn) {
+  const startTime = microtime.now();
+  const end = function() {
+    const endTime = microtime.now();
+    const elapsed = endTime - startTime;
+    console.log("It took " + elapsed + ` microseconds to process ${tokens.length} tokens ${count} times`);
+  };
 
-  fn(end)
+  return fn(end);
+};
 
-time (callback) ->
-  testFunction tokens, callback
+time(callback => testFunction(tokens, callback));
+
+function __range__(left, right, inclusive) {
+  let range = [];
+  let ascending = left < right;
+  let end = !inclusive ? right : ascending ? right + 1 : right - 1;
+  for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
+    range.push(i);
+  }
+  return range;
+}
