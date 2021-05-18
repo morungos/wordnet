@@ -93,38 +93,27 @@ describe('wordnet with cache enabled', () => {
 
 
   describe('querySense', () => {
-    xit('should succeed for node', done => wordnet.querySense('node', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(8);
-      return done();
-    }));
 
-    xit('should succeed for node with a two-argument callback', done => wordnet.querySense('node', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(8);
-      return done();
-    }));
+    it('should succeed for node', () => {
+      return wordnet.querySense('node')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toBeInstanceOf(Array);
+          expect(results).toHaveLength(8);
+        });
+    });
 
-    xit('should return the exact same value for a second query', done => wordnet.querySense('node', (results) => {
-      expect(results).toBeDefined();
-      return wordnet.querySense('node', (results2) => {
-        expect(results2).toBe(results);
-        return done();
-      });
-    }));
+    it('should return the exact same value for a second query', () => {
+      return wordnet.querySense('node')
+        .then((results) => {
+          expect(results).toBeDefined();
+          return wordnet.querySense('node')
+            .then((results2) => {
+              expect(results2).toBe(results);
+            });
+        });
+    });
 
-    xit('should return the exact same value for a second query and a two-argument callback', done => wordnet.querySense('node', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      return wordnet.querySense('node', (err, results2) => {
-        expect(results2).toBe(results);
-        expect(err).not.toBeTruthy();
-        return done();
-      });
-    }));
   });
 
 
