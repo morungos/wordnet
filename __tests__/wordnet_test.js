@@ -1,5 +1,3 @@
-const async = require('async');
-
 const Wordnet = require('../lib/wordnet');
 
 describe('wordnet', () => {
@@ -11,7 +9,7 @@ describe('wordnet', () => {
   });
 
   afterEach(() => {
-    wordnet.close();
+    return wordnet.close();
   });
 
   describe('get', () => {
@@ -31,93 +29,43 @@ describe('wordnet', () => {
   });
 
 
+  describe('lookupFromFiles', () => {
+
+    it('should succeed for node', () => {
+      return wordnet.lookupFromFiles(wordnet.allFiles, 'node')
+      .then((data) => {
+        expect(data).toBeInstanceOf(Array)
+        expect(data).toHaveLength(8);
+        expect(data).toHaveProperty('0.synsetOffset', 13911045);
+      });
+    });
+
+  })
+
 
   describe('lookup', () => {
 
-    it('should succeed for node', (done) => wordnet.lookup('node', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(8);
-      expect(results).toHaveProperty('0.synsetOffset', 3827107);
-      done();
-    }));
-
-    it('should succeed for test', (done) => wordnet.lookup('test', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(13);
-      done();
-    }));
-
-    //# Test for #16
-    it('should succeed for nested callbacks', (done) => wordnet.lookup('node', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(8);
-      return wordnet.lookup('test', (results) => {
-        expect(results).toBeDefined();
-        expect(results).toBeInstanceOf(Array);
-        expect(results).toHaveLength(13);
-        done();
-      });
-    }));
-
-    it('should succeed for node', (done) => wordnet.lookup('node', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveProperty('0.synsetOffset', 3827107);
-      done();
-    }));
-
-    it('should succeed for node with a two-argument callback', (done) => wordnet.lookup('node', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveProperty('0.synsetOffset', 3827107);
-      done();
-    }));
-
-    it('should succeed for lie#v', (done) => wordnet.lookup('lie#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(7);
-      done();
-    }));
-
-    it('should succeed for words with odd glosses, e.g., in#r', (done) => wordnet.lookup('in#r', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(1);
-      done();
-    }));
-
-    it('should succeed for alter#v', (done) => wordnet.lookup('alter#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(5);
-      done();
-    }));
-
-    it('should succeed for alte#r', (done) => wordnet.lookup('alte#r', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(0);
-      done();
-    }));
-  });
-
-
-  describe('lookupAsync', () => {
-
     it('should succeed for node', () => {
-      return wordnet.lookupAsync('node')
+      return wordnet.lookup('node')
         .then((result) => {
-          expect(result).toHaveProperty('0.synsetOffset', 3827107);
+          expect(result).toBeDefined();
+          expect(result).toBeInstanceOf(Array);
+          expect(result).toHaveLength(8);
+          expect(result).toHaveProperty('0.synsetOffset', 13911045);
+        });
+    });
+
+    it('should succeed for test', () => {
+      return wordnet.lookup('test')
+        .then((result) => {
+          expect(result).toBeDefined();
+          expect(result).toBeInstanceOf(Array);
+          expect(result).toHaveLength(13);
         });
     });
 
     it('should succeed for lie#v', () => {
-      return wordnet.lookupAsync('lie#v')
+      return wordnet.lookup('lie#v')
         .then((result) => {
           expect(result).toBeInstanceOf(Array);
           expect(result).toHaveLength(7);
@@ -125,44 +73,35 @@ describe('wordnet', () => {
     });
 
     it('should succeed for words with odd glosses, e.g., in#r', () => {
-      return wordnet.lookupAsync('in#r')
+      return wordnet.lookup('in#r')
         .then((result) => {
           expect(result).toBeInstanceOf(Array);
           expect(result).toHaveLength(1);
         });
     });
+
+    it('should succeed for alter#v', () => {
+      return wordnet.lookup('alter#v')
+        .then((result) => {
+          expect(result).toBeInstanceOf(Array);
+          expect(result).toHaveLength(5);
+        });
+    });
+
+    it('should succeed for alte#r', () => {
+      return wordnet.lookup('alte#r')
+        .then((result) => {
+          expect(result).toBeInstanceOf(Array);
+          expect(result).toHaveLength(0);
+        });
+    });
+
   });
 
 
   describe('querySense', () => {
-    it('should succeed for node', (done) => wordnet.querySense('node', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(8);
-      done();
-    }));
-
-    it('should succeed for node with two-argument callback', (done) => wordnet.querySense('node', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(8);
-      done();
-    }));
-
-    it('should succeed for ghostly#a', (done) => wordnet.querySense('ghostly#a', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toBeInstanceOf(Array);
-      expect(results).toHaveLength(1);
-      expect(results).toEqual(['ghostly#a#1']);
-      done();
-    }));
-  });
-
-
-  describe('querySenseAsync', () => {
     it('should succeed for node', () => {
-      return wordnet.querySenseAsync('node')
+      return wordnet.querySense('node')
         .then((result) => {
           expect(result).toBeInstanceOf(Array);
           expect(result).toHaveLength(8);    
@@ -170,7 +109,7 @@ describe('wordnet', () => {
     });
 
     it('should succeed for ghostly#a', () => {
-      return wordnet.querySenseAsync('ghostly#a')
+      return wordnet.querySense('ghostly#a')
         .then((result) => {
           expect(result).toBeInstanceOf(Array);
           expect(result).toHaveLength(1);    
@@ -182,190 +121,167 @@ describe('wordnet', () => {
 
   describe('findSense', () => {
 
-    it('should succeed for lie#v#1', (done) => wordnet.findSense('lie#v#1', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toHaveProperty('lemma', 'lie_down');
-      expect(results).toHaveProperty('pos', 'v');
-      done();
-    }));
-
-    it('should succeed for lie#v#1 with a two-argument callback', (done) => wordnet.findSense('lie#v#1', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      expect(results).toHaveProperty('lemma', 'lie_down');
-      expect(results).toHaveProperty('pos', 'v');
-      done();
-    }));
-  });
-
-
-  describe('findSenseAsync', () => {
-    it('should succeed for lie#v#1', () => {
-      return wordnet.findSenseAsync('lie#v#1')
+    it('should succeed for lie#v#7', () => {
+      return wordnet.findSense('lie#v#7')
         .then((results) => {
           expect(results).toHaveProperty('lemma', 'lie_down');
+          expect(results).toHaveProperty('pos', 'v');
         });
     });
   });
+
+
+  describe("exceptions", () => {
+
+    it('should load exceptions only when needed', () => {
+      expect(wordnet).not.toHaveProperty('exceptions', expect.anything());
+      const result = wordnet.loadExceptions();
+      expect(result).toBeInstanceOf(Promise);
+      expect(wordnet).toHaveProperty('exceptions', expect.any(Promise));
+      return result
+        .then((values) => {
+          expect(values).toHaveProperty('r.deeper', ['deeply']);
+          expect(wordnet).not.toHaveProperty('exceptions', expect.any(Promise));
+          expect(wordnet).toHaveProperty('exceptions', expect.anything());
+        });
+    });
+
+  });
+
 
 
   describe('validForms', () => {
 
-    it('should succeed for axes#n', (done) => wordnet.validForms('axes#n', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['ax#n', 'axis#n']);
-      done();
-    }));
-
-    it('should succeed for axes#n with a two-argument callback', (done) => wordnet.validForms('axes#n', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      expect(results).toEqual(['ax#n', 'axis#n']);
-      done();
-    }));
-
-    it('should succeed for dissatisfied#v', (done) => wordnet.validForms('dissatisfied#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['dissatisfy#v']);
-      done();
-    }));
-
-    it('should succeed for testing#v', (done) => wordnet.validForms('testing#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['test#v']);
-      done();
-    }));
-
-    it('should succeed for checked#v', (done) => wordnet.validForms('checked#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['check#v']);
-      done();
-    }));
-
-    it('should succeed for ghostliest#a', (done) => wordnet.validForms('ghostliest#a', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['ghostly#a']);
-      done();
-    }));
-
-    it('should succeed for farther#r', (done) => wordnet.validForms('farther#r', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['farther#r', 'far#r']);
-      done();
-    }));
-
-    it('should succeed for find#v', (done) => wordnet.validForms('find#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['find#v']);
-      done();
-    }));
-
-    it('should succeed for are#v', (done) => wordnet.validForms('are#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['be#v']);
-      done();
-    }));
-
-    it('should succeed for repeated queries', (done) => wordnet.validForms('find#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['find#v']);
-      return wordnet.validForms('farther#r', (results) => {
-        expect(results).toBeDefined();
-        expect(results).toEqual(['farther#r', 'far#r']);
-        done();
-      });
-    }));
-
-    //# Tests for #5
-    it('should succeed for fought#v', (done) => wordnet.validForms('fought#v', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['fight#v']);
-      done();
-    }));
-
-    //# Tests for #5
-    it('should succeed for fought', (done) => wordnet.validForms('fought', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['fight#v']);
-      done();
-    }));
-
-    //# Tests for #6
-    it('should succeed for alter', (done) => wordnet.validForms('alter', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['alter#v']);
-      done();
-    }));
-
-    //# Tests for #10
-    it('should succeed for fought_', (done) => wordnet.validForms('fought_', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual([]);
-      done();
-    }));
-
-    //# Tests for #10
-    it('should succeed for red_squirrel', (done) => wordnet.validForms('red_squirrel', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toEqual(['red_squirrel#n']);
-      done();
-    }));
-
-    it('should succeed for a set of queries pushed asynchronously', (done) => {
-      const query = (item, callback) => wordnet.validForms(item, results => callback(null, results));
-
-      async.map(['be#v', 'are#v'], query, (err, results) => {
-        expect(results).toBeDefined();
-        expect(results).toEqual([['be#v'], ['be#v']]);
-        done();
-      });
-    });
-  });
-
-
-  describe('validFormsAsync', () => {
-
     it('should succeed for axes#n', () => {
-      return wordnet.validFormsAsync('axes#n')
+      return wordnet.validForms('axes#n')
         .then((results) => {
-          expect(results).toEqual(['ax#n', 'axis#n'])
+          expect(results).toBeDefined();
+          expect(results).toEqual(['ax#n', 'axis#n']);    
         });
-    });
-
+    })
+    
     it('should succeed for dissatisfied#v', () => {
-      return wordnet.validFormsAsync('dissatisfied#v')
+      return wordnet.validForms('dissatisfied#v')
         .then((results) => {
-          expect(results).toEqual(['dissatisfy#v'])
+          expect(results).toBeDefined();
+          expect(results).toEqual(['dissatisfy#v']);
         });
-    });
+    })
 
     it('should succeed for testing#v', () => {
-      return wordnet.validFormsAsync('testing#v')
+      return wordnet.validForms('testing#v')
         .then((results) => {
-          expect(results).toEqual(['test#v'])
-        });
+          expect(results).toBeDefined();
+          expect(results).toEqual(['test#v']);
+        })
     });
 
     it('should succeed for checked#v', () => {
-      return wordnet.validFormsAsync('checked#v')
+      return wordnet.validForms('checked#v')
         .then((results) => {
-          expect(results).toEqual(['check#v'])
-        });
+          expect(results).toBeDefined();
+          expect(results).toEqual(['check#v']);
+        })
     });
 
     it('should succeed for ghostliest#a', () => {
-      return wordnet.validFormsAsync('ghostliest#a')
+      return wordnet.validForms('ghostliest#a')
         .then((results) => {
-          expect(results).toEqual(['ghostly#a'])
-        });
+          expect(results).toBeDefined();
+          expect(results).toEqual(['ghostly#a']);
+        })
     });
 
     it('should succeed for farther#r', () => {
-      return wordnet.validFormsAsync('farther#r')
+      return wordnet.validForms('farther#r')
         .then((results) => {
-          expect(results).toEqual(['farther#r', 'far#r'])
+          expect(results).toBeDefined();
+          expect(results).toEqual(['farther#r', 'far#r']);
+        })
+    });
+
+    it('should succeed for find#v', () => {
+      return wordnet.validForms('find#v')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['find#v']);
+        })
+    });
+
+    it('should succeed for are#v', () => {
+      return wordnet.validForms('are#v')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['be#v']);
+        })
+    });
+
+    it('should succeed for repeated queries', () => {
+      return wordnet.validForms('find#v')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['find#v']);
+        })
+        .then(() => wordnet.validForms('farther#r'))
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['farther#r', 'far#r']);
         });
     });
+
+    // Tests for #5
+    it('should succeed for fought#v', () => {
+      return wordnet.validForms('fought#v')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['fight#v']);
+        });
+    });
+
+    // Tests for #5
+    it('should succeed for fought', () => {
+      return wordnet.validForms('fought')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['fight#v']);
+        });
+    });
+
+    // Tests for #6
+    it('should succeed for alter', () => {
+      return wordnet.validForms('alter')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['alter#v']);
+        });
+    });
+
+    // Tests for #10
+    it('should succeed for fought_', () => {
+      return wordnet.validForms('fought_')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual([]);
+        });
+    });
+
+    // Tests for #10
+    it('should succeed for red_squirrel', () => {
+      return wordnet.validForms('red_squirrel')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual(['red_squirrel#n']);
+        });
+    });
+
+    it('should succeed for a set of queries pushed asynchronously', () => {
+      return Promise.all(['be#v', 'are#v'].map((w) => wordnet.validForms(w)))
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toEqual([['be#v'], ['be#v']]);  
+        })
+    });
+
   });
 
 });

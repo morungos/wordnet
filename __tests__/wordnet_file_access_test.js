@@ -4,7 +4,7 @@ describe('wordnet file access', () => {
 
   it('should allow close before being used', () => {
     const wordnet = new Wordnet();
-    wordnet.close();
+    return wordnet.close();
   });
 
   it('should close after being used', () => {
@@ -25,11 +25,7 @@ describe('wordnet file access', () => {
     const wordnet = new Wordnet();
     return wordnet.get(3827107, 'n')
       .then(() => wordnet.close())
-      .then(() => new Promise((resolve, reject) => {
-        wordnet.querySense('ghostly#a', (results) => {
-          return wordnet.close()
-            .then(resolve);
-        });
-      }));
+      .then(() => wordnet.querySense('ghostly#a'))
+      .then(() => wordnet.close());
   });
 });
