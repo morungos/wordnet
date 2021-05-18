@@ -17,4 +17,14 @@ describe('WordnetFile', () => {
       });
   });
 
+  it('should set the size', () => {
+    const file = new WordnetFile(WNdb.path, 'index.noun');
+    return file.open()
+      .then(() => {
+        const size = file.size();
+        expect(size).toBeGreaterThan(4500000);
+        expect(size).toBeLessThan(5000000);
+      })
+      .finally(() => file.close())
+  });
 });
