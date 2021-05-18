@@ -16,7 +16,7 @@ describe('wordnet file access', () => {
     });
   });
 
-  it('should not be affected by spurious closes', (done) => {
+  xit('should not be affected by spurious closes', (done) => {
     const wordnet = new Wordnet();
     wordnet.get(3827107, 'n', (results) => {
       wordnet.close();
@@ -26,7 +26,7 @@ describe('wordnet file access', () => {
     });
   });
 
-  it('should silently re-open if needed', (done) => {
+  xit('should silently re-open if needed', (done) => {
     const wordnet = new Wordnet();
     wordnet.get(3827107, 'n', (results) => {
       wordnet.close();
