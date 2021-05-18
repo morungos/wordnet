@@ -16,34 +16,34 @@ describe('wordnet file access', function() {
   it('should close before being used', function(done) {
     const wordnet = new Wordnet();
     wordnet.close();
-    return done();
+    done();
   });
 
   it('should close after being used', function(done) {
     const wordnet = new Wordnet();
-    return wordnet.get(3827107, 'n', function(results) {
+    wordnet.get(3827107, 'n', function(results) {
       wordnet.close();
-      return done();
+      done();
     });
   });
 
   it('should not be affected by spurious closes', function(done) {
     const wordnet = new Wordnet();
-    return wordnet.get(3827107, 'n', function(results) {
+    wordnet.get(3827107, 'n', function(results) {
       wordnet.close();
       wordnet.close();
       wordnet.close();
-      return done();
+      done();
     });
   });
 
-  return it('should silently re-open if needed', function(done) {
+  it('should silently re-open if needed', function(done) {
     const wordnet = new Wordnet();
-    return wordnet.get(3827107, 'n', function(results) {
+    wordnet.get(3827107, 'n', function(results) {
       wordnet.close();
-      return wordnet.querySense('ghostly#a', function(results) {
+      wordnet.querySense('ghostly#a', function(results) {
         wordnet.close();
-        return done();
+        done();
       });
     });
   });
