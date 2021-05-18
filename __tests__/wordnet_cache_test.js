@@ -8,37 +8,48 @@ describe('wordnet with cache enabled', () => {
     wordnet = new Wordnet({cache: true});
   });
 
+  afterEach(() => {
+    return wordnet.close();
+  });
+
   describe('get', () => {
-    it('should succeed', (done) => wordnet.get(3827107, 'n', (results) => {
-      expect(results).toBeDefined();
-      expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
-      return done();
-    }));
+    it('should succeed', () => {
+      return wordnet.get(3827107, 'n')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
+        });
+    });
 
-    it('should succeed with a two-argument callback', (done) => wordnet.get(3827107, 'n', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
-      return done();
-    }));
+    it('should succeed with a two-argument callback', () => {
+      return wordnet.get(3827107, 'n')
+        .then((results) => {
+          expect(results).toBeDefined();
+          expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
+        });
+    });
 
-    it('should return the exact same value for a second query', (done) => wordnet.get(3827107, 'n', (results) => {
-      expect(results).toBeDefined();
-      return wordnet.get(3827107, 'n', (results2) => {
-        expect(results2).toBe(results);
-        return done();
-      });
-    }));
+    it('should return the exact same value for a second query', () => {
+      return wordnet.get(3827107, 'n')
+        .then((results) => {
+          expect(results).toBeDefined();
+          return wordnet.get(3827107, 'n')
+            .then((results2) => {
+              expect(results2).toBe(results);
+            })
+        });
+    });
 
-    it('should return the exact same value for a second query and a two-argument callback', (done) => wordnet.get(3827107, 'n', (err, results) => {
-      expect(results).toBeDefined();
-      expect(err).not.toBeTruthy();
-      return wordnet.get(3827107, 'n', (err, results2) => {
-        expect(results2).toBe(results);
-        expect(err).not.toBeTruthy();
-        return done();
-      });
-    }));
+    it('should return the exact same value for a second query and a two-argument callback', () => {
+      return wordnet.get(3827107, 'n')
+        .then((results) => {
+          expect(results).toBeDefined();
+          return wordnet.get(3827107, 'n')
+            .then((results2) => {
+              expect(results2).toBe(results);
+            });
+        });
+    });
   });
 
 

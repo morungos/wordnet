@@ -2,38 +2,34 @@ const Wordnet = require('../lib/wordnet');
 
 describe('wordnet file access', () => {
 
-  it('should close before being used', (done) => {
+  it('should allow close before being used', () => {
     const wordnet = new Wordnet();
     wordnet.close();
-    done();
   });
 
-  it('should close after being used', (done) => {
+  it('should close after being used', () => {
     const wordnet = new Wordnet();
-    wordnet.get(3827107, 'n', (results) => {
-      wordnet.close();
-      done();
-    });
+    return wordnet.get(3827107, 'n')
+      .then(() => wordnet.close());
   });
 
-  xit('should not be affected by spurious closes', (done) => {
+  it('should not be affected by spurious closes', () => {
     const wordnet = new Wordnet();
-    wordnet.get(3827107, 'n', (results) => {
-      wordnet.close();
-      wordnet.close();
-      wordnet.close();
-      done();
-    });
+    return wordnet.get(3827107, 'n')
+      .then(() => wordnet.close())
+      .then(() => wordnet.close())
+      .then(() => wordnet.close());
   });
 
-  xit('should silently re-open if needed', (done) => {
+  it('should silently re-open if needed', () => {
     const wordnet = new Wordnet();
-    wordnet.get(3827107, 'n', (results) => {
-      wordnet.close();
-      wordnet.querySense('ghostly#a', (results) => {
-        wordnet.close();
-        done();
-      });
-    });
+    return wordnet.get(3827107, 'n')
+      .then(() => wordnet.close())
+      .then(() => new Promise((resolve, reject) => {
+        wordnet.querySense('ghostly#a', (results) => {
+          return wordnet.close()
+            .then(resolve);
+        });
+      }));
   });
 });

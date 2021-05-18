@@ -15,35 +15,16 @@ describe('wordnet', () => {
   });
 
   describe('get', () => {
-    it('should succeed', (done) => wordnet.get(3827107, 'n', (results) => {
-      expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
-      done();
-    }));
-
-    it('should succeed with a two argument callback', (done) => wordnet.get(3827107, 'n', (err, results) => {
-      expect(err).not.toBeTruthy();
-      expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
-      done();
-    }));
-
-    it('should fail with an error in a two argument callback', (done) => wordnet.get(3827108, 'n', (err, results) => {
-      expect(results).toBeNull();
-      expect(err).toBeTruthy();
-      done();
-    }));
-  });
-
-  describe('getAsync', () => {
 
     it('should succeed', () => {
-      return wordnet.getAsync(3827107, 'n')
+      return wordnet.get(3827107, 'n')
         .then((result) => {
           expect(result).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ')
         });
     });
 
     it('should fail with an error', () => {
-      const result = wordnet.getAsync(3827108, 'n');
+      const result = wordnet.get(3827108, 'n');
       return expect(result).rejects.toThrow(/Invalid synsetOffset/);
     });
     
