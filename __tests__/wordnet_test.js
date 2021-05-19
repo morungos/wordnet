@@ -271,4 +271,20 @@ describe('wordnet', () => {
 
   });
 
+
+  describe('getSynonyms', () => {
+
+    it('should find synonyms', () => {
+      return wordnet.getSynonyms(3827107, 'n')
+      .then((result) => {
+        expect(result).toBeInstanceOf(Array);
+        expect(result).toHaveLength(3);
+        expect(result).toHaveProperty("0.lemma", "computer");
+        expect(result).toHaveProperty("1.lemma", "computer_network");
+        expect(result).toHaveProperty("2.lemma", "computer_science");
+      });
+    });
+
+  })
+
 });
