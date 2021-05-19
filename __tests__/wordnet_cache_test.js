@@ -22,14 +22,6 @@ describe('wordnet with cache enabled', () => {
         });
     });
 
-    it('should succeed with a two-argument callback', () => {
-      return wordnet.get(3827107, 'n')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toHaveProperty('gloss', '(computer science) any computer that is hooked up to a computer network  ');
-        });
-    });
-
     /**
      * With caching enabled, a second request should never make it 
      * through any I/O parts. We can sort of track that.
