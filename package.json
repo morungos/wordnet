@@ -25,7 +25,6 @@
     "wndb-with-exceptions": "^3.0.2"
   },
   "dependencies": {
-    "async": "^0.9.0",
     "lru-cache": "^2.5.0"
   }
 }
