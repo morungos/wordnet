@@ -6,6 +6,7 @@ describe('wordnet', () => {
 
   beforeEach(() => {
     wordnet = new Wordnet();
+    return wordnet.open();
   });
 
   afterEach(() => {

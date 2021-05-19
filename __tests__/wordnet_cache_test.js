@@ -6,6 +6,7 @@ describe('wordnet with cache enabled', () => {
 
   beforeEach(() => {
     wordnet = new Wordnet({cache: true});
+    return wordnet.open();
   });
 
   afterEach(() => {
