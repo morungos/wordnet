@@ -3,7 +3,8 @@
     "include": [ "lib", "CHANGES.md", "README.md" ]
   },
   "opts": {
-    "destination": "./jsdoc/"
+    "destination": "./jsdoc/",
+    "pedantic": true
   },
   "sourceType": "module",
   "plugins": ["plugins/markdown"],
