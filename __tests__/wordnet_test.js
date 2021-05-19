@@ -135,73 +135,48 @@ describe('wordnet', () => {
 
   });
 
+  const validForms = [
+    ['axes#n', ['ax#n', 'axis#n']],
+    ['leeches#n', ['leech#n']],
+    ['humen#n', ['human#n']],
+    ['boxes#n', ['box#n']],
+    ['bosses#n', ['boss#n']],
+    ['hazes#n', ['haze#n']],
+    ['brushes#n', ['brush#n']],
+    ['tallies#n', ['tally#n']],
+    ['red_squirrel', ['red_squirrel#n']],  // See #10
+
+    ['dissatisfied#v', ['dissatisfy#v']],
+    ['testing#v', ['test#v']],
+    ['checked#v', ['check#v']],
+    ['find#v', ['find#v']],
+    ['fights#v', ['fight#v']],
+    ['carries#v', ['carry#v']],
+    ['are#v', ['be#v']],
+    ['fought', ['fight#v']],               // See #5
+    ['alter', ['alter#v']],                // See #6
+    ['fought_', []],                       // See #10
+
+    ['ghostliest#a', ['ghostly#a']],
+
+    ['farther#r', ['farther#r', 'far#r']],
+    ['highest#r', ['high#r']],
+  ];
 
 
   describe('validForms', () => {
 
-    it('should succeed for axes#n', () => {
-      return wordnet.validForms('axes#n')
+    test.each(validForms)('should succeed for %s', (form, values) => {
+      return wordnet.validForms(form)
         .then((results) => {
           expect(results).toBeDefined();
-          expect(results).toEqual(['ax#n', 'axis#n']);    
+          expect(results).toEqual(values);    
         });
-    })
+    });
     
-    it('should succeed for dissatisfied#v', () => {
-      return wordnet.validForms('dissatisfied#v')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['dissatisfy#v']);
-        });
-    })
+  });
 
-    it('should succeed for testing#v', () => {
-      return wordnet.validForms('testing#v')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['test#v']);
-        })
-    });
-
-    it('should succeed for checked#v', () => {
-      return wordnet.validForms('checked#v')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['check#v']);
-        })
-    });
-
-    it('should succeed for ghostliest#a', () => {
-      return wordnet.validForms('ghostliest#a')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['ghostly#a']);
-        })
-    });
-
-    it('should succeed for farther#r', () => {
-      return wordnet.validForms('farther#r')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['farther#r', 'far#r']);
-        })
-    });
-
-    it('should succeed for find#v', () => {
-      return wordnet.validForms('find#v')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['find#v']);
-        })
-    });
-
-    it('should succeed for are#v', () => {
-      return wordnet.validForms('are#v')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['be#v']);
-        })
-    });
+  describe('validForms', () => {
 
     it('should succeed for repeated queries', () => {
       return wordnet.validForms('find#v')
@@ -213,51 +188,6 @@ describe('wordnet', () => {
         .then((results) => {
           expect(results).toBeDefined();
           expect(results).toEqual(['farther#r', 'far#r']);
-        });
-    });
-
-    // Tests for #5
-    it('should succeed for fought#v', () => {
-      return wordnet.validForms('fought#v')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['fight#v']);
-        });
-    });
-
-    // Tests for #5
-    it('should succeed for fought', () => {
-      return wordnet.validForms('fought')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['fight#v']);
-        });
-    });
-
-    // Tests for #6
-    it('should succeed for alter', () => {
-      return wordnet.validForms('alter')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['alter#v']);
-        });
-    });
-
-    // Tests for #10
-    it('should succeed for fought_', () => {
-      return wordnet.validForms('fought_')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual([]);
-        });
-    });
-
-    // Tests for #10
-    it('should succeed for red_squirrel', () => {
-      return wordnet.validForms('red_squirrel')
-        .then((results) => {
-          expect(results).toBeDefined();
-          expect(results).toEqual(['red_squirrel#n']);
         });
     });
 
