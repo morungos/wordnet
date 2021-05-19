@@ -374,6 +374,7 @@ const time = function(fn) {
   return fn().then(end);
 };
 
-return time(() => testFunction(tokens, repeats))
+return wordnet.open()
+  .then(() => time(() => testFunction(tokens, repeats)))
   .then(() => wordnet.close())
   .then(() => console.log("Done"));
