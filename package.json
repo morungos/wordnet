@@ -4,7 +4,9 @@
   "description": "Node.js interface for Wordnet",
   "main": "lib/wordnet.js",
   "scripts": {
-    "test": "node_modules/.bin/gulp test"
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "jsdoc": "jsdoc --configure jsdoc.json"
   },
   "repository": {
     "type": "git",
@@ -20,19 +22,12 @@
   },
   "homepage": "https://github.com/morungos/wordnet",
   "devDependencies": {
-    "chai": "^1.10.0",
-    "chai-as-promised": "^4.1.1",
-    "coffee-script": "^1.8.0",
-    "gulp": "^3.8.10",
-    "gulp-coffee": "^2.2.0",
-    "gulp-mocha": "^2.0.0",
-    "mocha": "^2.2.5",
-    "wndb-with-exceptions": "^3.0.1"
+    "jest": "^26.6.3",
+    "jsdoc": "^3.6.7",
+    "microtime": "^3.0.0",
+    "wndb-with-exceptions": "^3.0.2"
   },
   "dependencies": {
-    "async": "^0.9.0",
-    "bluebird": "^2.6.0",
-    "es6-shim": "^0.22.1",
     "lru-cache": "^2.5.0"
   }
 }
