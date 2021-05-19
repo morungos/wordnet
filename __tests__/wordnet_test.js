@@ -2,14 +2,14 @@ const Wordnet = require('../lib/wordnet');
 
 describe('wordnet', () => {
 
-  let wordnet = undefined;
+  let wordnet;
 
-  beforeEach(() => {
+  beforeAll(() => {
     wordnet = new Wordnet();
     return wordnet.open();
   });
 
-  afterEach(() => {
+  afterAll(() => {
     return wordnet.close();
   });
 
@@ -28,20 +28,6 @@ describe('wordnet', () => {
     });
     
   });
-
-
-  describe('lookupFromFiles', () => {
-
-    it('should succeed for node', () => {
-      return wordnet.lookupFromFiles(wordnet.allFiles, 'node')
-      .then((data) => {
-        expect(data).toBeInstanceOf(Array)
-        expect(data).toHaveLength(8);
-        expect(data).toHaveProperty('0.synsetOffset', 13911045);
-      });
-    });
-
-  })
 
 
   describe('lookup', () => {

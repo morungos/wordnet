@@ -4,14 +4,14 @@ const WNdb = require('wndb-with-exceptions')
 
 describe('IndexFile', () => {
 
-  let file = null;
+  let file;
 
-  beforeEach(() => {
+  beforeAll(() => {
     file = new IndexFile(WNdb.path, 'noun');
     return file.open();
   });
 
-  afterEach(() => {
+  afterAll(() => {
     return file.close();
   });
 
