@@ -1,0 +1,11 @@
+{
+  "source": {
+    "include": [ "lib", "CHANGES.md", "README.md" ]
+  },
+  "opts": {
+    "destination": "./jsdoc/"
+  },
+  "sourceType": "module",
+  "plugins": ["plugins/markdown"],
+  "verbose": true
+}

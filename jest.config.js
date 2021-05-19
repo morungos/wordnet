@@ -13,6 +13,9 @@ module.exports = {
   ],
   "coveragePathIgnorePatterns": [
     "/__jest__/",
+    "/__tests__/",
+    "/jsdoc/",
+    "/coverage/",
     "jest.config.js"
   ]
 };
