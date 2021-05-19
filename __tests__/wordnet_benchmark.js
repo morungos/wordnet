@@ -5,10 +5,9 @@
  */
 let match;
 const microtime = require('microtime');
-const async = require('async');
 
 const Wordnet = require('../lib/wordnet');
-const wordnet = new Wordnet();
+const wordnet = new Wordnet({cache: true});
 
 const testText = `\
 Emma Woodhouse, handsome, clever, and rich, with a comfortable home
@@ -338,45 +337,43 @@ man of six or seven-and-twenty can take care of himself."\
 let string = testText;
 string = string.replace(/\n/, ' ');
 const tokens = [];
-let count = 0;
 
 const matcher = /\w+/g;
 while ((match = matcher.exec(string))) {
   tokens.push(match[0]);
 }
 
-const testTokens = function(tokens, callback) {
-  const lookup = (token, done) => wordnet.lookup(token, result => done());
-  return async.each(tokens, lookup, callback);
+const testTokens = function(tokens, i) {
+  if (i == tokens.length) {
+    return Promise.resolve();
+  } else {
+    return wordnet.lookup(tokens[i]).then(() => testTokens(tokens, i + 1));
+  }
 };
 
-const testFunction = function(tokens, callback) {
-  const itemFn = function(item, done) {
-    count = count + 1;
-    return testTokens(tokens.slice(), done);
-  };
-  return async.each(__range__(1, 10, true), itemFn, () => callback());
+const testFunction = function(tokens, count) {
+  if (count == 0) {
+    return Promise.resolve();
+  } else {
+    return testTokens(tokens, 0)
+      .then(() => testFunction(tokens, count - 1));
+  }
 };
+
+const repeats = 3;
 
 const time = function(fn) {
   const startTime = microtime.now();
   const end = function() {
     const endTime = microtime.now();
     const elapsed = endTime - startTime;
-    console.log("It took " + elapsed + ` microseconds to process ${tokens.length} tokens ${count} times`);
+    console.log("It took " + elapsed + ` microseconds to process ${tokens.length} tokens ${repeats} times`);
+    console.log("Average " + (elapsed / (tokens.length * repeats)) + " microseconds per token");
   };
 
-  return fn(end);
+  return fn().then(end);
 };
 
-time(callback => testFunction(tokens, callback));
-
-function __range__(left, right, inclusive) {
-  let range = [];
-  let ascending = left < right;
-  let end = !inclusive ? right : ascending ? right + 1 : right - 1;
-  for (let i = left; ascending ? i < end : i > end; ascending ? i++ : i--) {
-    range.push(i);
-  }
-  return range;
-}
+return time(() => testFunction(tokens, repeats))
+  .then(() => wordnet.close())
+  .then(() => console.log("Done"));

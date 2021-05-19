@@ -66,16 +66,15 @@ options configure the interface. The following options are available:
     configure a new `lru-cache`.
 
 
-### lookup(word, callback)
+### lookup(word)
 
-Here's an example of looking up definitions for the word, "node". The callback
-can accept one or two arguments, if two, the first is an error flag and the second
-the results.
+Here's an example of looking up definitions for the word, "node". Returns
+a Promise resolving to the results.
 
 ```javascript
 var wordnet = new WordNet()
 
-wordnet.lookup('node', function(results) {
+wordnet.lookup('node').then(function(results) {
     results.forEach(function(result) {
         console.log('------------------------------------');
         console.log(result.synsetOffset);
@@ -87,10 +86,6 @@ wordnet.lookup('node', function(results) {
     });
 });
 ```
-
-### lookupAsync(word)
-
-Similar to `lookup(word, callback)` but returning a promise.
 
 ### get(offset, pos, callback)
 
