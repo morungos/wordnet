@@ -1,6 +1,34 @@
 const Wordnet = require('../lib/wordnet');
 
-describe('wordnet', () => {
+describe('Wordnet constructor', () => {
+
+  it('should create an instance', () => {
+    const wordnet = new Wordnet();
+    expect(wordnet).toBeInstanceOf(Wordnet);
+  });
+
+  it('should handle a passed path string', () => {
+    const wordnet = new Wordnet('/usr/lib/xxxx');
+    expect(wordnet).toBeInstanceOf(Wordnet);
+    expect(wordnet.path).toEqual('/usr/lib/xxxx');
+  });
+
+  it('should handle a passed path as object firld', () => {
+    const wordnet = new Wordnet({dataDir: '/usr/lib/xxxx'});
+    expect(wordnet).toBeInstanceOf(Wordnet);
+    expect(wordnet.path).toEqual('/usr/lib/xxxx');
+  });
+
+  it('should handle a passed cache instance', () => {
+    const cache = {get: jest.fn()};
+    const wordnet = new Wordnet({cache: cache});
+    expect(wordnet).toBeInstanceOf(Wordnet);
+    expect(wordnet._cache).toBe(cache);
+  });
+
+});
+
+describe('Wordnet methods', () => {
 
   let wordnet;
 
@@ -13,7 +41,7 @@ describe('wordnet', () => {
     return wordnet.close();
   });
 
-  describe('get', () => {
+  describe('get()', () => {
 
     it('should succeed', () => {
       return wordnet.get(3827107, 'n')
@@ -30,7 +58,7 @@ describe('wordnet', () => {
   });
 
 
-  describe('lookup', () => {
+  describe('lookup()', () => {
 
     it('should succeed for node', () => {
       return wordnet.lookup('node')
@@ -86,7 +114,7 @@ describe('wordnet', () => {
   });
 
 
-  describe('querySense', () => {
+  describe('querySense()', () => {
     it('should succeed for node', () => {
       return wordnet.querySense('node')
         .then((result) => {
@@ -106,7 +134,7 @@ describe('wordnet', () => {
   });
 
 
-  describe('findSense', () => {
+  describe('findSense()', () => {
 
     it('should succeed for lie#v#7', () => {
       return wordnet.findSense('lie#v#7')
@@ -115,6 +143,7 @@ describe('wordnet', () => {
           expect(results).toHaveProperty('pos', 'v');
         });
     });
+
   });
 
 
@@ -164,7 +193,7 @@ describe('wordnet', () => {
   ];
 
 
-  describe('validForms', () => {
+  describe('validForms()', () => {
 
     test.each(validForms)('should succeed for %s', (form, values) => {
       return wordnet.validForms(form)
@@ -176,7 +205,7 @@ describe('wordnet', () => {
     
   });
 
-  describe('validForms', () => {
+  describe('validForms()', () => {
 
     it('should succeed for repeated queries', () => {
       return wordnet.validForms('find#v')
@@ -202,7 +231,7 @@ describe('wordnet', () => {
   });
 
 
-  describe('getSynonyms', () => {
+  describe('getSynonyms()', () => {
 
     it('should find synonyms', () => {
       return wordnet.getSynonyms(3827107, 'n')
