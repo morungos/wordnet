@@ -17,6 +17,20 @@ describe('WordnetFile', () => {
       });
   });
 
+  it('should allow opening more than once', () => {
+    const file = new WordnetFile(WNdb.path, 'index.noun');
+    return file.open()
+      .then(() => file.open())
+      .then(() => file.close());
+  });
+
+  it('should allow closing more than once', () => {
+    const file = new WordnetFile(WNdb.path, 'index.noun');
+    return file.open()
+      .then(() => file.close())
+      .then(() => file.close());
+  });
+
   it('should set the size', () => {
     const file = new WordnetFile(WNdb.path, 'index.noun');
     return file.open()
